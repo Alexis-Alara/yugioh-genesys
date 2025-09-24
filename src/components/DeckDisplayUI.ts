@@ -97,7 +97,7 @@ export class DeckDisplayUI {
 
   private createDeckAvatar(deckCard: DeckCard, deckType: DeckTypeValue): string {
     const card = deckCard.card;
-    const fullImageUrl = card.card_images?.[0]?.url || '';
+    const fullImageUrl = card.card_images?.[0]?.id || 0;
     const quantity = deckCard.quantity;
     const points = GenesysService.getCardPoints(card.name) * quantity;
     const previewData = this.buildPreviewDataset(card, fullImageUrl);
@@ -112,9 +112,10 @@ export class DeckDisplayUI {
       >
         <img
           class="deck-avatar-image"
-          src="${this.escapeAttribute(AVATAR_PLACEHOLDER)}"
+          src="http://127.0.0.1:8000/cards/${fullImageUrl}"
           alt="${this.escapeAttribute(card.name)}"
           loading="lazy"
+          style="max-width: 50px; max-height: 80px;"
         />
         <span class="deck-avatar-qty">${quantity}</span>
         ${points > 0 ? `<span class="deck-avatar-score">${points} pts</span>` : ''}
@@ -239,7 +240,7 @@ export class DeckDisplayUI {
     }
   }
 
-  private buildPreviewDataset(card: DeckCard['card'], imageUrl: string): string {
+  private buildPreviewDataset(card: DeckCard['card'], imageUrl: number): string {
     const sanitizedDesc = this.escapeAttribute(this.normalizeWhitespace(card.desc));
     const attrs = [
       `data-card-name="${this.escapeAttribute(card.name)}"`,
@@ -252,7 +253,7 @@ export class DeckDisplayUI {
       `data-card-atk="${card.atk ?? ''}"`,
       `data-card-def="${card.def ?? ''}"`,
       `data-card-desc="${sanitizedDesc}"`,
-      `data-card-image="${this.escapeAttribute(imageUrl)}"`
+      `data-card-image="http://127.0.0.1:8000/cards/${imageUrl}"`
     ];
 
     return attrs.join(' ');

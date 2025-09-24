@@ -103,9 +103,9 @@ export class CardSearchUI {
 
   private createCardElement(card: Card): string {
     const thumbUrl = card.card_images?.[0]?.url_small || '';
-    const fullImageUrl = card.card_images?.[0]?.url || '';
-    const atk = card.atk !== undefined ? card.atk.toString() : '';
-    const def = card.def !== undefined ? card.def.toString() : '';
+    const fullImageUrl = card.card_images?.[0]?.id || 0;
+    const atk = card.atk != null ? card.atk.toString() : '';
+    const def = card.def != null ? card.def.toString() : '';
     const stats = atk && def ? `${atk}/${def}` : atk ? `${atk}/?` : def ? `?/${def}` : '';
     const level = card.level ? `LV.${card.level}` : card.linkval ? `LINK-${card.linkval}` : '';
     const attribute = card.attribute ? card.attribute : '';
@@ -120,7 +120,7 @@ export class CardSearchUI {
     return `
       <div class="search-card card-hover-target" data-card-id="${card.id}" ${previewAttrs}>
         <div class="search-card-thumb">
-          <img src="${this.escapeAttribute(thumbUrl)}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
+          <img src="http://127.0.0.1:8000/cards/${fullImageUrl}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
           ${level ? `<span class="search-card-level">${this.escapeText(level)}</span>` : ''}
           ${attribute ? `<span class="search-card-attribute">${this.escapeText(attribute)}</span>` : ''}
         </div>
@@ -183,7 +183,7 @@ export class CardSearchUI {
     }
   }
 
-  private buildPreviewDataset(card: Card, imageUrl: string): string {
+  private buildPreviewDataset(card: Card, imageUrl: number): string {
     const sanitizedDesc = this.escapeAttribute(this.normalizeWhitespace(card.desc));
     const attrs = [
       `data-card-name="${this.escapeAttribute(card.name)}"`,
@@ -196,9 +196,9 @@ export class CardSearchUI {
       `data-card-atk="${card.atk ?? ''}"`,
       `data-card-def="${card.def ?? ''}"`,
       `data-card-desc="${sanitizedDesc}"`,
-      `data-card-image="${this.escapeAttribute(imageUrl)}"`
+      `data-card-image="http://127.0.0.1:8000/cards/${imageUrl}"`,
     ];
-
+    console.log('Preview attributes:', imageUrl);
     return attrs.join(' ');
   }
 
