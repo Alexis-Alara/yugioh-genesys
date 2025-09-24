@@ -1,78 +1,110 @@
 <!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yu-Gi-Oh! Deck Builder</title>
-  </head>
-  <body>
-    <div id="app">
-      <header>
-        <h1>Yu-Gi-Oh! Deck Builder</h1>
-        <p>Construye tu deck perfecto</p>
-      </header>
-      
-      <main>
-        <div class="page-container">
-
-        <section id="deck-section">
-          <div class="deck-actions">
-            <button id="save-deck">Guardar Deck</button>
-            <button id="load-deck">Cargar Deck</button>
-            <button id="clear-deck">Limpiar Deck</button>
-          </div>
-          <div class="deck-header">
-            <h2>Mi Deck</h2>
-            <div class="genesys-counter">
-              <span class="genesys-label">Puntos Genesys:</span>
-              <span id="genesys-points" class="genesys-points">0</span>
-            </div>
-          </div>
-          
-          <div class="deck-container">
-            <div class="deck-column">
-              <h3>Main Deck <span id="main-count">(0/60)</span></h3>
-              <div id="main-deck" class="deck-area"></div>
-            </div>
-            
-            <div class="deck-column">
-              <h3>Extra Deck <span id="extra-count">(0/15)</span></h3>
-              <div id="extra-deck" class="deck-area"></div>
-            </div>
-            
-            <div class="deck-column">
-              <h3>Side Deck <span id="side-count">(0/15)</span></h3>
-              <div id="side-deck" class="deck-area"></div>
-            </div>
-          </div>
-          
-          
-        </section>
-
-                <section id="search-section">
-          <h2>Buscar Cartas</h2>
-          <div class="search-container">
-            <input type="text" id="card-search" placeholder="Buscar cartas...">
-            <button id="search-btn">Buscar</button>
-          </div>
-          <div id="search-results" class="card-grid"></div>
-        </section>
-        </div>
-      </main>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vite-project</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
+    <title>Yu-Gi-Oh! Genesys Deck Builder</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="app-shell">
+        <header class="topbar">
+          <div class="brand-block">
+            <div class="brand-logo">YG</div>
+            <div class="brand-meta">
+              <span class="brand-title">Yu-Gi-Oh! Genesys</span>
+              <span class="brand-subtitle">Ultra Deck Builder</span>
+            </div>
+          </div>
+          <div class="deck-controls">
+            <div class="deck-name-field">
+              <label for="deck-name-input">Deck name</label>
+              <input id="deck-name-input" type="text" placeholder="Name your deck" maxlength="40" autocomplete="off" />
+            </div>
+            <div class="toolbar">
+              <button id="new-deck" class="toolbar-btn" data-icon="add">New deck</button>
+              <button id="save-deck" class="toolbar-btn" data-icon="save">Save</button>
+              <button id="import-deck" class="toolbar-btn" data-icon="upload">Import</button>
+              <button id="export-deck" class="toolbar-btn" data-icon="download">Export</button>
+            </div>
+          </div>
+        </header>
+
+        <main class="main-layout">
+          <section class="panel deck-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>Deck builder</h2>
+                <span class="deck-total" id="deck-total">0 cards</span>
+              </div>
+              <div class="genesys-pill" title="Total Genesys score">
+                <span class="pill-label">Genesys</span>
+                <span class="pill-value" id="genesys-points">0</span>
+              </div>
+            </div>
+
+            <div class="deck-insights">
+              <div class="insight-card" data-type="monster">
+                <span class="insight-label">Monsters</span>
+                <span class="insight-value" id="stat-monster">0</span>
+              </div>
+              <div class="insight-card" data-type="spell">
+                <span class="insight-label">Spells</span>
+                <span class="insight-value" id="stat-spell">0</span>
+              </div>
+              <div class="insight-card" data-type="trap">
+                <span class="insight-label">Traps</span>
+                <span class="insight-value" id="stat-trap">0</span>
+              </div>
+            </div>
+
+            <div class="deck-rows">
+              <div class="deck-row deck-row-main">
+                <div class="deck-row-header">
+                  <h3>Main deck</h3>
+                  <span class="deck-counter" id="main-count">(0/60)</span>
+                </div>
+                <div id="main-deck" class="deck-lane" data-deck="main"></div>
+              </div>
+
+              <div class="deck-row deck-row-extra">
+                <div class="deck-row-header">
+                  <h3>Extra deck</h3>
+                  <span class="deck-counter" id="extra-count">(0/15)</span>
+                </div>
+                <div id="extra-deck" class="deck-lane" data-deck="extra"></div>
+              </div>
+
+              <div class="deck-row deck-row-side">
+                <div class="deck-row-header">
+                  <h3>Side deck</h3>
+                  <span class="deck-counter" id="side-count">(0/15)</span>
+                </div>
+                <div id="side-deck" class="deck-lane" data-deck="side"></div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel search-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h2>Card database</h2>
+                <span class="panel-subtitle">Search and add cards</span>
+              </div>
+            </div>
+
+            <div class="search-bar">
+              <input type="text" id="card-search" placeholder="Search cards by name" autocomplete="off" />
+              <button id="search-btn" class="search-btn" data-icon="search">Search</button>
+            </div>
+
+            <div id="search-results" class="search-results"></div>
+          </aside>
+        </main>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

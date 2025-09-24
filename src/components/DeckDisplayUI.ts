@@ -2,6 +2,8 @@ import type { DeckState, DeckCard, DeckTypeValue } from '../types/Card';
 import { DeckType } from '../types/Card';
 import { GenesysService } from '../services/GenesysService';
 
+const AVATAR_PLACEHOLDER = 'https://www.google.com/url?sa=i&url=https%3A%2F%2Faminoapps.com%2Fc%2Fyugioh-espanol%2Fpage%2Fblog%2Fcartas-caracteristicas-de-yu-gi-oh%2F1YvK_oxh6u0ozo6nndaV2aMdbQ8eBzkG5V&psig=AOvVaw0JSkRLYInOdvYtnc1Id34T&ust=1758764242524000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCNjou8Oh8I8DFQAAAAAdAAAAABAE';
+
 export class DeckDisplayUI {
   private mainDeckContainer: HTMLElement;
   private extraDeckContainer: HTMLElement;
@@ -35,32 +37,28 @@ export class DeckDisplayUI {
   }
 
   private initializeEventListeners(): void {
-    // Add event listeners for remove card actions
-    [this.mainDeckContainer, this.extraDeckContainer, this.sideDeckContainer].forEach(container => {
+    [this.mainDeckContainer, this.extraDeckContainer, this.sideDeckContainer].forEach((container) => {
       container.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement;
-        
-        if (target.classList.contains('add-one-btn')) {
-          const cardId = parseInt(target.getAttribute('data-card-id') || '0');
-          const deckType = target.getAttribute('data-deck-type') as DeckTypeValue;
-          
-          if (cardId && deckType) {
-            this.onAddCard(cardId, deckType);
-          }
-        } else if (target.classList.contains('remove-one-btn')) {
-          const cardId = parseInt(target.getAttribute('data-card-id') || '0');
-          const deckType = target.getAttribute('data-deck-type') as DeckTypeValue;
-          
-          if (cardId && deckType) {
-            this.onRemoveCard(cardId, deckType, false);
-          }
-        } else if (target.classList.contains('remove-all-btn')) {
-          const cardId = parseInt(target.getAttribute('data-card-id') || '0');
-          const deckType = target.getAttribute('data-deck-type') as DeckTypeValue;
-          
-          if (cardId && deckType) {
-            this.onRemoveCard(cardId, deckType, true);
-          }
+        const button = (event.target as HTMLElement).closest('.deck-avatar-action') as HTMLElement | null;
+
+        if (!button) {
+          return;
+        }
+
+        const cardId = parseInt(button.getAttribute('data-card-id') || '0', 10);
+        const deckType = button.getAttribute('data-deck-type') as DeckTypeValue;
+        const action = button.getAttribute('data-action');
+
+        if (!cardId || !deckType || !action) {
+          return;
+        }
+
+        if (action === 'add') {
+          this.onAddCard(cardId, deckType);
+        } else if (action === 'remove') {
+          this.onRemoveCard(cardId, deckType, false);
+        } else if (action === 'delete') {
+          this.onRemoveCard(cardId, deckType, true);
         }
       });
     });
@@ -70,74 +68,86 @@ export class DeckDisplayUI {
     this.displayDeckCards(this.mainDeckContainer, deckState.mainDeck, DeckType.MAIN);
     this.displayDeckCards(this.extraDeckContainer, deckState.extraDeck, DeckType.EXTRA);
     this.displayDeckCards(this.sideDeckContainer, deckState.sideDeck, DeckType.SIDE);
-    
+
     this.updateDeckCounts(deckState);
+    this.updateDeckInsights(deckState);
+    this.updateDeckTotal(deckState);
   }
 
   private displayDeckCards(container: HTMLElement, deckCards: DeckCard[], deckType: DeckTypeValue): void {
     if (deckCards.length === 0) {
       container.innerHTML = `
-        <div class="empty-deck">
-          <p>No hay cartas en este deck</p>
+        <div class="deck-lane-empty">
+          <p>No cards in this section</p>
         </div>
       `;
       return;
     }
 
-    const cardsHtml = deckCards.map(deckCard => 
-      this.createDeckCardElement(deckCard, deckType)
-    ).join('');
-    
+    const cardsHtml = deckCards
+      .map((deckCard) => this.createDeckAvatar(deckCard, deckType))
+      .join('');
+
     container.innerHTML = `
-      <div class="deck-cards">
+      <div class="deck-avatar-list">
         ${cardsHtml}
       </div>
     `;
   }
 
-  private createDeckCardElement(deckCard: DeckCard, deckType: DeckTypeValue): string {
+  private createDeckAvatar(deckCard: DeckCard, deckType: DeckTypeValue): string {
     const card = deckCard.card;
-    const imageUrl = card.card_images?.[0]?.url_small || '';
+    const fullImageUrl = card.card_images?.[0]?.url || '';
     const quantity = deckCard.quantity;
-    
-    // Get Genesys points
-    const points = GenesysService.getCardPoints(card.name);
-    const totalPoints = points * quantity;
-    let genesysPointsHtml = '';
-    if (points > 0) {
-      const color = GenesysService.getPointsColor(points);
-      genesysPointsHtml = `<span class="deck-card-points" style="color: ${color}" title="Genesys: ${points} x ${quantity} = ${totalPoints} puntos">${totalPoints}pts</span>`;
-    }
+    const points = GenesysService.getCardPoints(card.name) * quantity;
+    const previewData = this.buildPreviewDataset(card, fullImageUrl);
 
     return `
-      <div class="deck-card-item" data-card-id="${card.id}">
-        <div class="deck-card-image">
-          <img src="${imageUrl}" alt="${card.name}" loading="lazy">
-          <div class="card-quantity">${quantity}</div>
-        </div>
-        <div class="deck-card-info">
-          <h6 class="deck-card-name">${card.name}</h6>
-          <p class="deck-card-type">${card.type}</p>
-          ${genesysPointsHtml}
-        </div>
-        <div class="deck-card-actions">
-          <button class="add-one-btn" 
-                  data-card-id="${card.id}" 
-                  data-deck-type="${deckType}"
-                  title="Agregar una carta">
-            +1
+      <div
+        class="deck-avatar card-hover-target"
+        data-card-id="${card.id}"
+        data-deck-type="${deckType}"
+        ${previewData}
+        title="${this.escapeAttribute(card.name)}"
+      >
+        <img
+          class="deck-avatar-image"
+          src="${this.escapeAttribute(AVATAR_PLACEHOLDER)}"
+          alt="${this.escapeAttribute(card.name)}"
+          loading="lazy"
+        />
+        <span class="deck-avatar-qty">${quantity}</span>
+        ${points > 0 ? `<span class="deck-avatar-score">${points} pts</span>` : ''}
+        <div class="deck-avatar-actions">
+          <button
+            class="deck-avatar-action"
+            type="button"
+            data-action="add"
+            data-card-id="${card.id}"
+            data-deck-type="${deckType}"
+            title="Add one copy"
+          >
+            <span class="material-symbols-outlined">add</span>
           </button>
-          <button class="remove-one-btn" 
-                  data-card-id="${card.id}" 
-                  data-deck-type="${deckType}"
-                  title="Remover una carta">
-            -1
+          <button
+            class="deck-avatar-action"
+            type="button"
+            data-action="remove"
+            data-card-id="${card.id}"
+            data-deck-type="${deckType}"
+            title="Remove one copy"
+          >
+            <span class="material-symbols-outlined">remove</span>
           </button>
-          <button class="remove-all-btn" 
-                  data-card-id="${card.id}" 
-                  data-deck-type="${deckType}"
-                  title="Remover todas las cartas">
-            ×
+          <button
+            class="deck-avatar-action"
+            type="button"
+            data-action="delete"
+            data-card-id="${card.id}"
+            data-deck-type="${deckType}"
+            title="Remove all copies"
+          >
+            <span class="material-symbols-outlined">delete</span>
           </button>
         </div>
       </div>
@@ -153,18 +163,64 @@ export class DeckDisplayUI {
     this.extraCountElement.textContent = `(${extraCount}/15)`;
     this.sideCountElement.textContent = `(${sideCount}/15)`;
 
-    // Update count colors based on limits
-    this.updateCountColor(this.mainCountElement, mainCount, 60);
-    this.updateCountColor(this.extraCountElement, extraCount, 15);
-    this.updateCountColor(this.sideCountElement, sideCount, 15);
+    this.updateCountState(this.mainCountElement, mainCount, 60);
+    this.updateCountState(this.extraCountElement, extraCount, 15);
+    this.updateCountState(this.sideCountElement, sideCount, 15);
   }
 
-  private updateCountColor(element: HTMLElement, count: number, limit: number): void {
+  private updateDeckInsights(deckState: DeckState): void {
+    const stats = { monster: 0, spell: 0, trap: 0 };
+
+    deckState.mainDeck.forEach((deckCard) => {
+      const type = deckCard.card.type;
+      const qty = deckCard.quantity;
+
+      if (type.includes('Spell')) {
+        stats.spell += qty;
+      } else if (type.includes('Trap')) {
+        stats.trap += qty;
+      } else {
+        stats.monster += qty;
+      }
+    });
+
+    const monsterElement = document.getElementById('stat-monster');
+    const spellElement = document.getElementById('stat-spell');
+    const trapElement = document.getElementById('stat-trap');
+
+    if (monsterElement) {
+      monsterElement.textContent = stats.monster.toString();
+    }
+    if (spellElement) {
+      spellElement.textContent = stats.spell.toString();
+    }
+    if (trapElement) {
+      trapElement.textContent = stats.trap.toString();
+    }
+  }
+
+  private updateDeckTotal(deckState: DeckState): void {
+    const total =
+      this.getTotalCardsCount(deckState.mainDeck) +
+      this.getTotalCardsCount(deckState.extraDeck) +
+      this.getTotalCardsCount(deckState.sideDeck);
+
+    const deckTotalElement = document.getElementById('deck-total');
+    if (deckTotalElement) {
+      deckTotalElement.textContent = this.formatCardTotal(total);
+    }
+  }
+
+  private formatCardTotal(total: number): string {
+    return `${total} ${total === 1 ? 'card' : 'cards'}`;
+  }
+
+  private updateCountState(element: HTMLElement, count: number, limit: number): void {
     element.classList.remove('count-warning', 'count-full', 'count-normal');
-    
+
     if (count === limit) {
       element.classList.add('count-full');
-    } else if (count > limit * 0.8) {
+    } else if (count >= limit * 0.8) {
       element.classList.add('count-warning');
     } else {
       element.classList.add('count-normal');
@@ -175,30 +231,43 @@ export class DeckDisplayUI {
     return deckCards.reduce((total, deckCard) => total + deckCard.quantity, 0);
   }
 
-  public showDeckStats(deckState: DeckState): void {
-    const stats = {
-      main: this.getTotalCardsCount(deckState.mainDeck),
-      extra: this.getTotalCardsCount(deckState.extraDeck),
-      side: this.getTotalCardsCount(deckState.sideDeck)
-    };
-
-    const totalCards = stats.main + stats.extra + stats.side;
-    const uniqueCards = deckState.mainDeck.length + deckState.extraDeck.length + deckState.sideDeck.length;
-
-    console.log('Deck Stats:', {
-      'Total Cards': totalCards,
-      'Unique Cards': uniqueCards,
-      'Main Deck': `${stats.main}/60`,
-      'Extra Deck': `${stats.extra}/15`,
-      'Side Deck': `${stats.side}/15`
-    });
-  }
-
-  updateGenesysPointsDisplay(deckManager: any): void {
+  public updateGenesysPointsDisplay(deckManager: any): void {
     const genesysPointsElement = document.getElementById('genesys-points');
     if (genesysPointsElement) {
       const totalPoints = deckManager.calculateGenesysPoints();
-      genesysPointsElement.textContent = totalPoints.toString();
+      genesysPointsElement.textContent = totalPoints.toLocaleString('en-US');
     }
+  }
+
+  private buildPreviewDataset(card: DeckCard['card'], imageUrl: string): string {
+    const sanitizedDesc = this.escapeAttribute(this.normalizeWhitespace(card.desc));
+    const attrs = [
+      `data-card-name="${this.escapeAttribute(card.name)}"`,
+      `data-card-type="${this.escapeAttribute(card.type)}"`,
+      `data-card-race="${this.escapeAttribute(card.race)}"`,
+      `data-card-attribute="${this.escapeAttribute(card.attribute || '')}"`,
+      `data-card-level="${card.level ?? ''}"`,
+      `data-card-link="${card.linkval ?? ''}"`,
+      `data-card-scale="${card.scale ?? ''}"`,
+      `data-card-atk="${card.atk ?? ''}"`,
+      `data-card-def="${card.def ?? ''}"`,
+      `data-card-desc="${sanitizedDesc}"`,
+      `data-card-image="${this.escapeAttribute(imageUrl)}"`
+    ];
+
+    return attrs.join(' ');
+  }
+
+  private normalizeWhitespace(value: string): string {
+    return value ? value.replace(/\s+/g, ' ').trim() : '';
+  }
+
+  private escapeAttribute(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/'/g, '&#39;');
   }
 }

@@ -23,15 +23,15 @@ export class CardSearchUI {
 
   private initializeEventListeners(): void {
     this.searchButton.addEventListener('click', () => this.handleSearch());
-    
+
     this.searchInput.addEventListener('keypress', (event) => {
       if (event.key === 'Enter') {
+        event.preventDefault();
         this.handleSearch();
       }
     });
 
     this.searchInput.addEventListener('input', () => {
-      // Clear results if search is empty
       if (!this.searchInput.value.trim()) {
         this.clearResults();
       }
@@ -40,7 +40,7 @@ export class CardSearchUI {
 
   private async handleSearch(): Promise<void> {
     const searchTerm = this.searchInput.value.trim();
-    
+
     if (!searchTerm) {
       this.clearResults();
       return;
@@ -54,21 +54,22 @@ export class CardSearchUI {
       this.displayResults(cards);
     } catch (error) {
       console.error('Error searching cards:', error);
-      this.showError('Error al buscar cartas. Por favor, inténtalo de nuevo.');
+      this.showError('We could not find cards right now. Please try again.');
     }
   }
 
   private showLoading(): void {
     this.resultsContainer.innerHTML = `
-      <div class="loading">
-        <p>Buscando cartas...</p>
+      <div class="search-feedback loading">
+        <span class="pulse"></span>
+        <p>Searching cards...</p>
       </div>
     `;
   }
 
   private showError(message: string): void {
     this.resultsContainer.innerHTML = `
-      <div class="error">
+      <div class="search-feedback error">
         <p>${message}</p>
       </div>
     `;
@@ -81,17 +82,18 @@ export class CardSearchUI {
   private displayResults(cards: Card[]): void {
     if (cards.length === 0) {
       this.resultsContainer.innerHTML = `
-        <div class="no-results">
-          <p>No se encontraron cartas.</p>
+        <div class="search-feedback empty">
+          <p>No cards were found.</p>
         </div>
       `;
       return;
     }
 
-    const cardsHtml = cards.map(card => this.createCardElement(card)).join('');
+    const cardsHtml = cards.map((card) => this.createCardElement(card)).join('');
+
     this.resultsContainer.innerHTML = `
-      <div class="results-header">
-        <h4>Resultados (${cards.length} cartas encontradas)</h4>
+      <div class="results-meta">
+        <span class="results-count">${cards.length} cards found</span>
       </div>
       <div class="cards-grid">
         ${cardsHtml}
@@ -100,61 +102,69 @@ export class CardSearchUI {
   }
 
   private createCardElement(card: Card): string {
-    // const imageUrl = card.card_images?.[0]?.url_small || '';
-    const imageUrl = 'https://tse4.mm.bing.net/th/id/OIP._QPFrccrbRCBl9eIlJvE0QHaEK?rs=1&pid=ImgDetMain&o=7&rm=3';
-    const atkDef = (card.atk !== undefined && card.def !== undefined) 
-      ? `${card.atk}/${card.def}` 
-      : '';
-    const level = card.level ? `★${card.level}` : '';
-    const attribute = card.attribute ? card.attribute.substring(0, 3) : '';
-    
-    // Get Genesys points for the card
+    const thumbUrl = card.card_images?.[0]?.url_small || '';
+    const fullImageUrl = card.card_images?.[0]?.url || '';
+    const atk = card.atk !== undefined ? card.atk.toString() : '';
+    const def = card.def !== undefined ? card.def.toString() : '';
+    const stats = atk && def ? `${atk}/${def}` : atk ? `${atk}/?` : def ? `?/${def}` : '';
+    const level = card.level ? `LV.${card.level}` : card.linkval ? `LINK-${card.linkval}` : '';
+    const attribute = card.attribute ? card.attribute : '';
+
     const points = GenesysService.getCardPoints(card.name);
-    let genesysPointsHtml = '';
-    if (points > 0) {
-      genesysPointsHtml = `<span class="card-genesys-points" data-points="${points}">${points}pts</span>`;
-    }
+    const genesysBadge = points > 0
+      ? `<span class="search-card-points" title="Genesys score">${points} pts</span>`
+      : '';
+
+    const previewAttrs = this.buildPreviewDataset(card, fullImageUrl);
 
     return `
-      <div class="card-item-compact" data-card-id="${card.id}" title="${card.name}">
-        <div class="card-image-compact">
-          <img src="${imageUrl}" alt="${card.name}" loading="lazy">
-          ${level ? `<span class="card-level-badge">${level}</span>` : ''}
-          ${attribute ? `<span class="card-attribute-badge">${attribute}</span>` : ''}
-          ${genesysPointsHtml}
+      <div class="search-card card-hover-target" data-card-id="${card.id}" ${previewAttrs}>
+        <div class="search-card-thumb">
+          <img src="${this.escapeAttribute(thumbUrl)}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
+          ${level ? `<span class="search-card-level">${this.escapeText(level)}</span>` : ''}
+          ${attribute ? `<span class="search-card-attribute">${this.escapeText(attribute)}</span>` : ''}
         </div>
-        <div class="card-info-compact">
-          <h6 class="card-name-compact">${card.name}</h6>
-          <p class="card-type-compact">${card.race}</p>
-          ${atkDef ? `<p class="card-stats-compact">${atkDef}</p>` : ''}
+        <div class="search-card-body">
+          <div class="search-card-title">
+            <h5>${this.escapeText(card.name)}</h5>
+            ${genesysBadge}
+          </div>
+          <span class="search-card-type">${this.escapeText(card.type)}</span>
+          <span class="search-card-race">${this.escapeText(card.race)}</span>
+          ${stats ? `<span class="search-card-stats">${this.escapeText(stats)}</span>` : ''}
         </div>
-        <button class="add-card-btn-compact" data-card-id="${card.id}" title="Agregar ${card.name} al deck">
-          +
+        <button
+          class="search-card-add add-card-btn-compact"
+          data-card-id="${card.id}"
+          title="Add ${this.escapeAttribute(card.name)}"
+        >
+          <span class="material-symbols-outlined">add</span>
         </button>
       </div>
     `;
   }
 
-
-
   public initializeCardActions(): void {
     this.resultsContainer.addEventListener('click', async (event) => {
       const target = event.target as HTMLElement;
-      
-      if (target.classList.contains('add-card-btn-compact') || target.classList.contains('add-card-btn')) {
-        const cardId = parseInt(target.getAttribute('data-card-id') || '0');
-        
-        if (cardId) {
-          try {
-            const { YugiohApiService } = await import('../services/YugiohApiService');
-            const card = await YugiohApiService.getCardById(cardId);
-            
-            if (card) {
-              this.onCardSelect(card);
-            }
-          } catch (error) {
-            console.error('Error adding card to deck:', error);
+
+      const button = target.closest('.add-card-btn-compact') as HTMLElement | null;
+      if (!button) {
+        return;
+      }
+
+      const cardId = parseInt(button.getAttribute('data-card-id') || '0', 10);
+
+      if (cardId) {
+        try {
+          const { YugiohApiService } = await import('../services/YugiohApiService');
+          const card = await YugiohApiService.getCardById(cardId);
+
+          if (card) {
+            this.onCardSelect(card);
           }
+        } catch (error) {
+          console.error('Error adding card to deck:', error);
         }
       }
     });
@@ -162,14 +172,50 @@ export class CardSearchUI {
 
   public async loadRandomCards(): Promise<void> {
     this.showLoading();
-    
+
     try {
       const { YugiohApiService } = await import('../services/YugiohApiService');
       const cards = await YugiohApiService.getRandomCards(40);
       this.displayResults(cards);
     } catch (error) {
       console.error('Error loading random cards:', error);
-      this.showError('Error al cargar cartas aleatorias.');
+      this.showError('Unable to load random cards right now.');
     }
+  }
+
+  private buildPreviewDataset(card: Card, imageUrl: string): string {
+    const sanitizedDesc = this.escapeAttribute(this.normalizeWhitespace(card.desc));
+    const attrs = [
+      `data-card-name="${this.escapeAttribute(card.name)}"`,
+      `data-card-type="${this.escapeAttribute(card.type)}"`,
+      `data-card-race="${this.escapeAttribute(card.race)}"`,
+      `data-card-attribute="${this.escapeAttribute(card.attribute || '')}"`,
+      `data-card-level="${card.level ?? ''}"`,
+      `data-card-link="${card.linkval ?? ''}"`,
+      `data-card-scale="${card.scale ?? ''}"`,
+      `data-card-atk="${card.atk ?? ''}"`,
+      `data-card-def="${card.def ?? ''}"`,
+      `data-card-desc="${sanitizedDesc}"`,
+      `data-card-image="${this.escapeAttribute(imageUrl)}"`
+    ];
+
+    return attrs.join(' ');
+  }
+
+  private normalizeWhitespace(value: string): string {
+    return value ? value.replace(/\s+/g, ' ').trim() : '';
+  }
+
+  private escapeAttribute(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private escapeText(value: string): string {
+    return this.escapeAttribute(value);
   }
 }
