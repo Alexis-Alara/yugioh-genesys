@@ -120,7 +120,7 @@ export class CardSearchUI {
     return `
       <div class="search-card card-hover-target" data-card-id="${card.id}" ${previewAttrs}>
         <div class="search-card-thumb">
-          <img src="http://207.244.226.105:8000/cards/${fullImageUrl}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
+          <img src="https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
           ${level ? `<span class="search-card-level">${this.escapeText(level)}</span>` : ''}
           ${attribute ? `<span class="search-card-attribute">${this.escapeText(attribute)}</span>` : ''}
         </div>
@@ -196,7 +196,7 @@ export class CardSearchUI {
       `data-card-atk="${card.atk ?? ''}"`,
       `data-card-def="${card.def ?? ''}"`,
       `data-card-desc="${sanitizedDesc}"`,
-      `data-card-image="http://207.244.226.105:8000/cards/${imageUrl}"`,
+      `data-card-image="https://yugiohgenesys.com.mx/api/cards/${imageUrl}"`,
     ];
     console.log('Preview attributes:', imageUrl);
     return attrs.join(' ');

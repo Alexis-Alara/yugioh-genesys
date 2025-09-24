@@ -112,7 +112,7 @@ export class DeckDisplayUI {
       >
         <img
           class="deck-avatar-image"
-          src="http://207.244.226.105:8000/cards/${fullImageUrl}"
+          src="https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}"
           alt="${this.escapeAttribute(card.name)}"
           loading="lazy"
           style="max-width: 50px; max-height: 80px;"
@@ -253,7 +253,7 @@ export class DeckDisplayUI {
       `data-card-atk="${card.atk ?? ''}"`,
       `data-card-def="${card.def ?? ''}"`,
       `data-card-desc="${sanitizedDesc}"`,
-      `data-card-image="http://207.244.226.105:8000/cards/${imageUrl}"`
+      `data-card-image="https://yugiohgenesys.com.mx/api/cards/${imageUrl}"`
     ];
 
     return attrs.join(' ');
