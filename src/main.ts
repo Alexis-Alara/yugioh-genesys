@@ -18,9 +18,14 @@ class YugiohDeckBuilderApp {
 
     this.cardSearchUI = new CardSearchUI(
       'card-search',
-      'search-btn',
+      'filter-type',
+      'filter-attribute',
+      'filter-level',
       'search-results',
-      (card: Card) => this.handleCardSelect(card)
+      (card: Card) => this.handleCardSelect(card),
+      'filters-toggle-btn',
+      'search-filters',
+      'filters-clear-btn'
     );
 
     this.deckDisplayUI = new DeckDisplayUI(
@@ -172,7 +177,7 @@ class YugiohDeckBuilderApp {
   private handleImportDeck(): void {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.json';
+    input.accept = '.ydk';
 
     input.addEventListener('change', async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
@@ -182,7 +187,7 @@ class YugiohDeckBuilderApp {
           const deckState = await DeckStorageService.importDeckFromFile(file);
           this.deckManager.loadDeck(deckState);
           this.showMessage(
-            `Deck "${deckState.name || 'Imported'}" loaded successfully.`,
+            `Deck "${deckState.name || 'Imported'}" loaded from YDK file successfully.`,
             'success'
           );
         } catch (error) {
@@ -200,7 +205,7 @@ class YugiohDeckBuilderApp {
     const deckName = deckState.name && deckState.name.trim() ? deckState.name.trim() : 'My Deck';
 
     DeckStorageService.exportDeckToFile(deckState, deckName);
-    this.showMessage(`Deck "${deckName}" exported as a file.`, 'success');
+    this.showMessage(`Deck "${deckName}" exported as .ydk file.`, 'success');
   }
 
   private handleNewDeck(): void {

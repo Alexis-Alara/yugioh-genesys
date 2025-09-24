@@ -3,6 +3,7 @@ import type { Card, ApiResponse, SearchFilters } from '../types/Card';
 export class YugiohApiService {
   private static readonly BASE_URL = 'https://db.ygoprodeck.com/api/v7';
   private static readonly CARDINFO_ENDPOINT = '/cardinfo.php';
+  private static readonly DEFAULT_SEARCH_LIMIT = 20;
   
   // Cache for storing fetched cards to reduce API calls
   private static cardCache: Map<number, Card> = new Map();
@@ -49,7 +50,7 @@ export class YugiohApiService {
     try {
       const encodedName = encodeURIComponent(name);
       const response = await fetch(
-        `${this.BASE_URL}${this.CARDINFO_ENDPOINT}?fname=${encodedName}`
+        `${this.BASE_URL}${this.CARDINFO_ENDPOINT}?fname=${encodedName}&num=${this.DEFAULT_SEARCH_LIMIT}&offset=0`
       );
       
       if (!response.ok) {
@@ -60,13 +61,14 @@ export class YugiohApiService {
       }
       
       const data: ApiResponse = await response.json();
+      const limited = data.data.slice(0, this.DEFAULT_SEARCH_LIMIT);
       
       // Cache the results
-      data.data.forEach(card => {
+      limited.forEach(card => {
         this.cardCache.set(card.id, card);
       });
       
-      return data.data;
+      return limited;
     } catch (error) {
       console.error('Error searching cards by name:', error);
       return [];
@@ -138,6 +140,9 @@ export class YugiohApiService {
     if (filters.archetype) {
       params.append('archetype', filters.archetype);
     }
+    // Enforce default search limit
+    params.append('num', this.DEFAULT_SEARCH_LIMIT.toString());
+    params.append('offset', '0');
 
     try {
       const response = await fetch(
@@ -152,13 +157,14 @@ export class YugiohApiService {
       }
       
       const data: ApiResponse = await response.json();
+      const limited = data.data.slice(0, this.DEFAULT_SEARCH_LIMIT);
       
       // Cache the results
-      data.data.forEach(card => {
+      limited.forEach(card => {
         this.cardCache.set(card.id, card);
       });
       
-      return data.data;
+      return limited;
     } catch (error) {
       console.error('Error searching cards with filters:', error);
       return [];

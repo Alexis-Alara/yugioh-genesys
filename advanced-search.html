@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yu-Gi-Oh! Genesys - Advanced Card Search</title>
+    <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div id="app">
+        <div class="search-panel">
+            <div class="search-controls">
+                <!-- Header with toggle button -->
+                <div class="search-header">
+                    <h3>Advanced Card Search</h3>
+                    <button id="filters-toggle-btn" class="search-toggle-filters">
+                        Show Filters
+                    </button>
+                </div>
+
+                <!-- Filters container (initially hidden) -->
+                <div id="filters-container" class="search-filters" style="display: none;">
+                    <label>
+                        Card Type
+                        <select id="type-select">
+                            <option value="">All Types</option>
+                            <option value="Normal Monster">Normal Monster</option>
+                            <option value="Effect Monster">Effect Monster</option>
+                            <option value="Fusion Monster">Fusion Monster</option>
+                            <option value="Ritual Monster">Ritual Monster</option>
+                            <option value="Synchro Monster">Synchro Monster</option>
+                            <option value="XYZ Monster">XYZ Monster</option>
+                            <option value="Pendulum Monster">Pendulum Monster</option>
+                            <option value="Link Monster">Link Monster</option>
+                            <option value="Spell Card">Spell Card</option>
+                            <option value="Trap Card">Trap Card</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Attribute
+                        <select id="attribute-select">
+                            <option value="">All Attributes</option>
+                            <option value="LIGHT">Light</option>
+                            <option value="DARK">Dark</option>
+                            <option value="EARTH">Earth</option>
+                            <option value="WATER">Water</option>
+                            <option value="FIRE">Fire</option>
+                            <option value="WIND">Wind</option>
+                            <option value="DIVINE">Divine</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Level/Rank
+                        <select id="level-select">
+                            <option value="">All Levels</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Race
+                        <select id="race-select">
+                            <option value="">All Races</option>
+                            <option value="Warrior">Warrior</option>
+                            <option value="Spellcaster">Spellcaster</option>
+                            <option value="Fairy">Fairy</option>
+                            <option value="Fiend">Fiend</option>
+                            <option value="Zombie">Zombie</option>
+                            <option value="Machine">Machine</option>
+                            <option value="Aqua">Aqua</option>
+                            <option value="Pyro">Pyro</option>
+                            <option value="Rock">Rock</option>
+                            <option value="Winged Beast">Winged Beast</option>
+                            <option value="Plant">Plant</option>
+                            <option value="Insect">Insect</option>
+                            <option value="Thunder">Thunder</option>
+                            <option value="Dragon">Dragon</option>
+                            <option value="Beast">Beast</option>
+                            <option value="Beast-Warrior">Beast-Warrior</option>
+                            <option value="Dinosaur">Dinosaur</option>
+                            <option value="Fish">Fish</option>
+                            <option value="Sea Serpent">Sea Serpent</option>
+                            <option value="Reptile">Reptile</option>
+                            <option value="Psychic">Psychic</option>
+                            <option value="Divine-Beast">Divine-Beast</option>
+                            <option value="Creator God">Creator God</option>
+                            <option value="Wyrm">Wyrm</option>
+                            <option value="Cyberse">Cyberse</option>
+                        </select>
+                    </label>
+                </div>
+
+                <!-- Filters actions (with clear button) -->
+                <div id="filters-actions" class="search-filters-actions">
+                    <button id="clear-filters-btn" class="clear-filters-btn">
+                        Clear Filters
+                    </button>
+                </div>
+
+                <!-- Search bar -->
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search cards by name...">
+                </div>
+
+                <!-- Results container -->
+                <div id="search-results" class="search-results">
+                    <div class="search-feedback">
+                        <p>Use the search above to find cards, or click "Show Filters" to filter by specific criteria.</p>
+                        <p><strong>💡 Tip:</strong> Try searching for "Blue-Eyes" or use filters to find specific card types!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { CardSearchUI } from './src/components/CardSearchUI.js';
+
+        // Initialize search with all filters including race
+        const cardSearch = new CardSearchUI(
+            'search-input',           // Search input
+            'type-select',            // Type select
+            'attribute-select',       // Attribute select
+            'level-select',           // Level select
+            'search-results',         // Results container
+            (card) => {
+                console.log('Card selected:', card.name);
+                // Handle card selection here
+                // You can add the card to deck, show details, etc.
+                alert(`Selected: ${card.name}\nType: ${card.type}\nWould you like to add this card to your deck?`);
+            },
+            'filters-toggle-btn',     // Filters toggle button
+            'filters-container',      // Filters container
+            'clear-filters-btn',      // Clear filters button
+            'race-select'             // Race select (optional)
+        );
+
+        // Optional: Load random cards on startup for demonstration
+        // cardSearch.loadRandomCards();
+
+        console.log('🎮 Yu-Gi-Oh! Card Search initialized with filters!');
+        console.log('✨ Features:');
+        console.log('   - Search by name');
+        console.log('   - Filter by type, attribute, level, and race');
+        console.log('   - Toggle filters visibility');
+        console.log('   - Clear all filters with one click');
+        console.log('   - Hover cards for preview');
+        console.log('   - Click cards to select them');
+    </script>
+</body>
+</html>
