@@ -214,10 +214,14 @@ export class CardSearchUI {
   }
 
   private createCardElement(card: Card): string {
+    let atk = '';
+    let def = '';
+    if (card) {
+      atk = card.atk != null ? card.atk.toString() : '';
+      def = card.def != null ? card.def.toString() : '';
+    }
     const thumbUrl = card.card_images?.[0]?.url_small || '';
     const fullImageUrl = card.card_images?.[0]?.id || 0;
-    const atk = card.atk != null ? card.atk.toString() : '';
-    const def = card.def != null ? card.def.toString() : '';
     const stats = atk && def ? `${atk}/${def}` : atk ? `${atk}/?` : def ? `?/${def}` : '';
     const level = card.level ? `LV.${card.level}` : card.linkval ? `LINK-${card.linkval}` : '';
     const attribute = card.attribute ? card.attribute : '';
@@ -377,11 +381,11 @@ export class CardSearchUI {
       `data-card-type="${this.escapeAttribute(card.type)}"`,
       `data-card-race="${this.escapeAttribute(card.race)}"`,
       `data-card-attribute="${this.escapeAttribute(card.attribute || '')}"`,
-      `data-card-level="${card.level !== undefined ? card.level.toString() : ''}"`,
-      `data-card-link="${card.linkval !== undefined ? card.linkval.toString() : ''}"`,
-      `data-card-scale="${card.scale !== undefined ? card.scale.toString() : ''}"`,
-      `data-card-atk="${card.atk !== undefined ? card.atk.toString() : ''}"`,
-      `data-card-def="${card.def !== undefined ? card.def.toString() : ''}"`,
+      `data-card-level="${card?.level?.toString() ?? ''}"`,
+      `data-card-link="${card?.linkval?.toString() ?? ''}"`,
+      `data-card-scale="${card?.scale?.toString() ?? ''}"`,
+      `data-card-atk="${card?.atk?.toString() ?? ''}"`,
+      `data-card-def="${card?.def?.toString() ?? ''}"`,
       `data-card-desc="${sanitizedDesc}"`,
       `data-card-image="https://yugiohgenesys.com.mx/api/cards/${imageUrl}"`,
     ];
