@@ -1,4 +1,6 @@
-import type { DeckState } from '../types/Card';
+import type { DeckState, DeckCard } from '../types/Card';
+import { YugiohApiService } from './YugiohApiService';
+
 
 export class DeckStorageService {
   private static readonly STORAGE_KEY = 'yugioh-deck-builder';
@@ -113,22 +115,23 @@ export class DeckStorageService {
   }
 
   /**
-   * Export deck to downloadable JSON file
+   * Export deck to downloadable YDK file
    */
   static exportDeckToFile(deckState: DeckState, filename?: string): void {
     try {
-      const deckJson = JSON.stringify(deckState, null, 2);
-      const blob = new Blob([deckJson], { type: 'application/json' });
+      const ydkContent = this.buildYdkContent(deckState);
+      const blob = new Blob([ydkContent], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
-      
+
       const link = document.createElement('a');
       link.href = url;
-      link.download = filename || `${deckState.name || 'deck'}.json`;
-      
+      const safeName = this.sanitizeFilename(filename || deckState.name || 'deck');
+      link.download = `${safeName}.ydk`;
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting deck to file:', error);
@@ -136,34 +139,172 @@ export class DeckStorageService {
   }
 
   /**
-   * Import deck from uploaded JSON file
+   * Import deck from uploaded YDK file
    */
   static importDeckFromFile(file: File): Promise<DeckState> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
-      reader.onload = (event) => {
-        try {
-          const jsonString = event.target?.result as string;
-          const deckState = JSON.parse(jsonString) as DeckState;
-          
-          // Validate the imported deck structure
-          if (!deckState.mainDeck || !deckState.extraDeck || !deckState.sideDeck) {
-            throw new Error('Invalid deck format in file');
-          }
 
+      reader.onload = async (event) => {
+        try {
+          const fileContent = (event.target?.result as string) ?? '';
+          const deckState = await this.parseYdkContent(fileContent);
           resolve(deckState);
         } catch (error) {
           reject(error);
         }
       };
-      
+
       reader.onerror = () => {
         reject(new Error('Error reading file'));
       };
-      
+
       reader.readAsText(file);
     });
+  }
+
+  private static buildYdkContent(deckState: DeckState): string {
+    const lines: string[] = [];
+    const deckName = deckState.name?.trim() || 'Yu-Gi-Oh! Genesys Deck';
+
+    lines.push(`#created by ${deckName}`);
+    lines.push('#main');
+    lines.push(...this.serializeDeckSection(deckState.mainDeck));
+    lines.push('#extra');
+    lines.push(...this.serializeDeckSection(deckState.extraDeck));
+    lines.push('!side');
+    lines.push(...this.serializeDeckSection(deckState.sideDeck));
+
+    return `${lines.join('\n').trimEnd()}\n`;
+  }
+
+  private static serializeDeckSection(section: DeckCard[]): string[] {
+    const ids: string[] = [];
+
+    section.forEach((deckCard) => {
+      const cardId = deckCard.card?.id;
+      if (!cardId) {
+        return;
+      }
+
+      for (let i = 0; i < deckCard.quantity; i += 1) {
+        ids.push(cardId.toString());
+      }
+    });
+
+    return ids;
+  }
+
+  private static sanitizeFilename(name: string): string {
+    const normalized = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s_-]/g, '')
+      .trim();
+
+    const simplified = normalized.replace(/\s+/g, '-').replace(/-+/g, '-');
+    return simplified.replace(/^[-_]+|[-_]+$/g, '') || 'deck';
+  }
+
+  private static async parseYdkContent(content: string): Promise<DeckState> {
+    const lines = content.split(/\r?\n/);
+    const mainIds: number[] = [];
+    const extraIds: number[] = [];
+    const sideIds: number[] = [];
+    let currentSection: 'main' | 'extra' | 'side' = 'main';
+    let deckName: string | undefined;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+
+      if (!line) {
+        continue;
+      }
+
+      if (line.startsWith('#')) {
+        const lower = line.toLowerCase();
+
+        if (lower.startsWith('#created by')) {
+          deckName = line.substring(11).trim() || undefined;
+        } else if (lower.startsWith('#main')) {
+          currentSection = 'main';
+        } else if (lower.startsWith('#extra')) {
+          currentSection = 'extra';
+        }
+
+        continue;
+      }
+
+      if (line.startsWith('!')) {
+        const lower = line.toLowerCase();
+
+        if (lower.startsWith('!side')) {
+          currentSection = 'side';
+        }
+
+        continue;
+      }
+
+      const cardId = Number.parseInt(line, 10);
+      if (Number.isNaN(cardId)) {
+        continue;
+      }
+
+      switch (currentSection) {
+        case 'extra':
+          extraIds.push(cardId);
+          break;
+        case 'side':
+          sideIds.push(cardId);
+          break;
+        case 'main':
+        default:
+          mainIds.push(cardId);
+          break;
+      }
+    }
+
+    const [mainDeck, extraDeck, sideDeck] = await Promise.all([
+      this.buildDeckSectionFromIds(mainIds),
+      this.buildDeckSectionFromIds(extraIds),
+      this.buildDeckSectionFromIds(sideIds)
+    ]);
+
+    return {
+      mainDeck,
+      extraDeck,
+      sideDeck,
+      name: deckName || 'Imported Deck'
+    };
+  }
+
+  private static async buildDeckSectionFromIds(ids: number[]): Promise<DeckCard[]> {
+    const counts = new Map<number, number>();
+    const order: number[] = [];
+
+    ids.forEach((id) => {
+      if (!counts.has(id)) {
+        order.push(id);
+      }
+
+      counts.set(id, (counts.get(id) || 0) + 1);
+    });
+
+    const deckCards: DeckCard[] = [];
+
+    for (const id of order) {
+      const card = await YugiohApiService.getCardById(id);
+
+      if (!card) {
+        throw new Error(`Card with ID ${id} could not be found while importing the deck.`);
+      }
+
+      deckCards.push({
+        card,
+        quantity: counts.get(id) || 0
+      });
+    }
+
+    return deckCards;
   }
 
   /**

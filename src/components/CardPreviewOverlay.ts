@@ -123,10 +123,35 @@ export class CardHoverPreview {
     this.overlay.classList.remove('is-active');
   };
 
+  private clearOverlay(): void {
+    // Limpiar todas las clases de estado
+    this.overlay.classList.remove('has-stats');
+
+    // Ocultar todos los elementos que pueden estar visibles
+    this.statsContainer.hidden = true;
+    this.attributeChip.hidden = true;
+    this.levelChip.hidden = true;
+    this.typeChip.hidden = true;
+    this.raceChip.hidden = true;
+
+    // Limpiar contenido de texto
+    this.nameEl.textContent = '';
+    this.atkEl.textContent = '';
+    this.defEl.textContent = '';
+    this.descEl.textContent = '';
+    this.atkEl.hidden = true;
+    this.defEl.hidden = true;
+    this.dividerEl.hidden = true;
+
+    // Limpiar imagen
+    this.imageEl.src = '';
+    this.imageEl.alt = '';
+  }
+
   private positionOverlay(event: MouseEvent): void {
     const offset = 28;
     const viewportPadding = 16;
-    const width = this.overlay.offsetWidth || 360;
+    const width = this.overlay.offsetWidth || 560;
     const height = this.overlay.offsetHeight || 520;
 
     let left = event.clientX + offset;
@@ -216,6 +241,9 @@ export class CardHoverPreview {
   }
 
   private populate(data: PreviewData): void {
+    // Limpiar completamente el estado anterior
+    this.clearOverlay();
+
     this.nameEl.textContent = data.name;
 
     const fallbackImage = 'https://static-ygoprodeck.com/pics/placeholder.jpg';

@@ -177,19 +177,27 @@ body {
 }
 
 .toolbar-btn[data-icon='plus']::before {
-  content: '+';
+  content: 'add';
+  font-family: 'Material Symbols Outlined';
+  font-size: 1.2rem;
 }
 
 .toolbar-btn[data-icon='save']::before {
-  content: 'S';
+  content: 'save';
+  font-family: 'Material Symbols Outlined';
+  font-size: 1.2rem;
 }
 
 .toolbar-btn[data-icon='upload']::before {
-  content: 'U';
+  content: 'upload';
+  font-family: 'Material Symbols Outlined';
+  font-size: 1.2rem;
 }
 
 .toolbar-btn[data-icon='download']::before {
-  content: 'E';
+  content: 'download';
+  font-family: 'Material Symbols Outlined';
+  font-size: 1.2rem;
 }
 
 .toolbar-btn:hover {
@@ -768,15 +776,15 @@ body {
 
 .preview-shell {
   display: grid;
-  grid-template-columns: 220px 320px;
-  gap: 20px;
-  padding: 22px;
+  grid-template-columns: 280px 400px;
+  gap: 24px;
+  padding: 28px;
   border-radius: 24px;
   background: linear-gradient(135deg, rgba(16, 22, 36, 0.78), rgba(10, 14, 24, 0.75));
   border: 1px solid rgba(74, 214, 255, 0.35);
   box-shadow: 0 26px 52px rgba(5, 7, 13, 0.65);
   backdrop-filter: blur(22px);
-  width: 540px;
+  width: auto;
   max-width: 90vw;
 }
 
@@ -974,4 +982,408 @@ body {
   .deck-name-field input {
     width: 100%;
   }
+}
+
+:root {
+  --color-panel-alt: rgba(28, 34, 52, 0.78);
+}
+
+.deck-rows {
+  gap: 24px;
+}
+
+.deck-row {
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--color-surface);
+  border: 1px solid rgba(74, 214, 255, 0.12);
+}
+
+.deck-row:nth-of-type(2n) {
+  background: var(--color-panel-alt);
+}
+
+.deck-row + .deck-row {
+  border-top: 1px solid rgba(148, 163, 208, 0.16);
+  margin-top: 6px;
+}
+
+.deck-lane {
+  padding: 18px 10px 4px;
+  background: linear-gradient(160deg, rgba(20, 26, 42, 0.9), rgba(10, 14, 26, 0.85));
+}
+
+.deck-avatar-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 12px;
+  align-content: start;
+  padding: 8px;
+}
+
+
+
+
+
+.search-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(74, 214, 255, 0.32);
+  background: rgba(5, 9, 18, 0.82);
+}
+
+.search-bar input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.search-bar input:focus {
+  outline: none;
+}
+
+.search-icon {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+}
+
+.search-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.search-control-btn {
+  flex: 1 1 160px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 214, 255, 0.32);
+  background: rgba(7, 11, 20, 0.82);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.search-control-btn:hover {
+  border-color: rgba(74, 214, 255, 0.6);
+  background: rgba(74, 214, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.search-control-btn--icon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.search-control-btn--icon .material-symbols-outlined {
+  font-size: 1.6rem;
+}
+
+.search-control-btn[aria-expanded="true"] {
+  border-color: rgba(168, 85, 247, 0.45);
+  background: rgba(168, 85, 247, 0.18);
+  color: var(--color-secondary);
+}
+
+.search-control-btn[data-has-filters="true"]:not([aria-expanded="true"]) {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--color-secondary);
+}
+
+.search-control-btn[data-has-filters="true"]:not([aria-expanded="true"]):hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.2);
+}
+
+.search-control-btn--ghost {
+  border-color: rgba(148, 163, 208, 0.32);
+  background: rgba(10, 12, 24, 0.78);
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.search-control-btn--ghost:hover {
+  border-color: rgba(148, 163, 208, 0.6);
+  background: rgba(148, 163, 208, 0.18);
+}
+
+.search-filters {
+  display: none;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(5, 9, 18, 0.6);
+  border: 1px solid rgba(74, 214, 255, 0.2);
+}
+
+.search-filters.is-visible {
+  display: grid;
+}
+
+.search-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.search-filters select {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 214, 255, 0.28);
+  background: rgba(5, 9, 18, 0.82);
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+
+.search-filters-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(74, 214, 255, 0.15);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.search-filters[hidden] {
+  display: none !important;
+}
+
+.search-results {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.preview-desc {
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+@media (max-width: 720px) {
+  .search-filter-actions {
+    flex-direction: column;
+  }
+
+  .search-control-btn {
+    flex: 1 1 auto;
+  }
+
+  .search-filters {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+.search-card-add {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 214, 255, 0.32);
+  background: rgba(7, 11, 20, 0.82);
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.search-card-add:hover {
+  border-color: rgba(74, 214, 255, 0.6);
+  background: rgba(74, 214, 255, 0.2);
+}
+
+/*
+============================================================
+NUEVO DISEÑO v2: AVATAR DE CARTA CON FONDO INMERSIVO
+============================================================
+*/
+
+/* 1. Contenedor Principal: Ahora es la CARTA */
+.deck-avatar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  aspect-ratio: 59 / 86; /* Proporción exacta de una carta YGO */
+  max-width: 120px; /* Limita el ancho máximo */
+  min-width: 80px; /* Ancho mínimo para que no se vea muy pequeña */
+  border: 1px solid rgba(74, 144, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  /* La magia empieza aquí: usamos la imagen como fondo */
+  background-image: var(--bg-image);
+  background-size: contain; /* Cambiado de cover a contain para ver la carta completa */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: rgba(5, 7, 13, 0.8); /* Fondo por si la imagen no carga */
+}
+
+.deck-avatar:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 12px 32px rgba(74, 144, 255, 0.25);
+}
+
+/* 2. Pseudo-elemento para gradiente y filtros (legibilidad y estilo) */
+.deck-avatar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* Gradiente para que el texto de abajo se lea bien */
+  background: linear-gradient(180deg, 
+    rgba(5, 7, 13, 0.5) 0%, 
+    transparent 30%, 
+    transparent 60%, 
+    rgba(5, 7, 13, 0.9) 100%);
+  /* Opcional: desenfoca ligeramente el fondo para que la imagen de enfrente resalte */
+  backdrop-filter: blur(1px) brightness(0.9);
+}
+
+/* 3. La imagen interna (crea el efecto de profundidad) */
+.deck-avatar-image {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  object-fit: contain;
+  border-radius: 6px; /* Bordes más pequeños que el contenedor */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
+}
+
+/* --- Elementos de la Interfaz --- */
+/* Todos los elementos de UI van en una capa superior (z-index: 3) */
+
+/* 4. Cantidad ( insignia en la esquina ) */
+.deck-avatar-qty {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+
+/* 5. Puntuación (visible por defecto en la parte inferior) */
+.deck-avatar-score {
+  position: absolute;
+  z-index: 3;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%); /* Centrado perfecto */
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--color-secondary);
+  color: var(--color-secondary);
+  backdrop-filter: blur(4px);
+  display: inline-flex;
+  gap: 3px;
+  align-items: baseline;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.deck-avatar-score-number { font-weight: 600; font-size: 0.7rem; }
+.deck-avatar-score-label { font-size: 0.5rem; text-transform: uppercase; }
+
+/* 6. Acciones (ocultas por defecto, aparecen en hover) */
+.deck-avatar-actions {
+  position: absolute;
+  z-index: 4; /* Encima de todo */
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  opacity: 0; /* Oculto por defecto */
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.deck-avatar-action {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(20, 20, 30, 0.7);
+  color: white;
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.deck-avatar-action:hover {
+  background: var(--color-primary);
+  color: black;
+  transform: scale(1.1);
+}
+
+/* La Magia de la Interacción: Puntos <-> Botones */
+.deck-avatar:hover .deck-avatar-score {
+  opacity: 0;
+  transform: translateX(-50%) translateY(6px); /* Se desliza hacia abajo al desaparecer */
+}
+.deck-avatar:hover .deck-avatar-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Esconde la toolbar original, ya que posicionamos sus elementos individualmente */
+.deck-avatar-toolbar {
+  display: none; 
 }

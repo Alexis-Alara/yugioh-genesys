@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yu-Gi-Oh! Genesys - Búsqueda con Filtros</title>
+    <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div id="app">
+        <div class="search-panel">
+            <div class="search-controls">
+                <!-- Header con botón toggle -->
+                <div class="search-header">
+                    <h3>Búsqueda de Cartas</h3>
+                    <button id="filters-toggle-btn" class="search-toggle-filters">
+                        Mostrar Filtros
+                    </button>
+                </div>
+
+                <!-- Contenedor de filtros (inicialmente oculto) -->
+                <div id="filters-container" class="search-filters" style="display: none;">
+                    <label>
+                        Tipo de Carta
+                        <select id="type-select">
+                            <option value="">Todos</option>
+                            <option value="Normal Monster">Monstruo Normal</option>
+                            <option value="Effect Monster">Monstruo de Efecto</option>
+                            <option value="Spell Card">Carta Mágica</option>
+                            <option value="Trap Card">Carta de Trampa</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Atributo
+                        <select id="attribute-select">
+                            <option value="">Todos</option>
+                            <option value="LIGHT">Luz</option>
+                            <option value="DARK">Oscuridad</option>
+                            <option value="EARTH">Tierra</option>
+                            <option value="WATER">Agua</option>
+                            <option value="FIRE">Fuego</option>
+                            <option value="WIND">Viento</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Nivel
+                        <select id="level-select">
+                            <option value="">Todos</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
+                    </label>
+                </div>
+
+                <!-- Acciones de filtros (con el botón limpiar) -->
+                <div id="filters-actions" class="search-filters-actions">
+                    <button id="clear-filters-btn" class="clear-filters-btn">
+                        Limpiar Filtros
+                    </button>
+                </div>
+
+                <!-- Barra de búsqueda -->
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Buscar cartas por nombre...">
+                </div>
+
+                <!-- Contenedor de resultados -->
+                <div id="search-results" class="search-results">
+                    <!-- Los resultados aparecerán aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { CardSearchUI } from './src/components/CardSearchUI.js';
+
+        // Inicializar búsqueda con filtros
+        const cardSearch = new CardSearchUI(
+            'search-input',           // Input de búsqueda
+            'type-select',            // Select de tipo
+            'attribute-select',       // Select de atributo
+            'level-select',           // Select de nivel
+            'search-results',         // Contenedor de resultados
+            (card) => {
+                console.log('Carta seleccionada:', card.name);
+                // Aquí puedes manejar la selección de la carta
+            },
+            'filters-toggle-btn',     // Botón toggle de filtros
+            'filters-container',      // Contenedor de filtros
+            'clear-filters-btn'       // Botón limpiar filtros
+        );
+
+        // Opcional: inicializar filtros por separado
+        // cardSearch.initializeFilters('filters-toggle-btn', 'filters-container', 'clear-filters-btn');
+    </script>
+</body>
+</html>

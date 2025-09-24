@@ -99,59 +99,53 @@ export class DeckDisplayUI {
     const card = deckCard.card;
     const fullImageUrl = card.card_images?.[0]?.id || 0;
     const quantity = deckCard.quantity;
-    const points = GenesysService.getCardPoints(card.name) * quantity;
+    const basePoints = GenesysService.getCardPoints(card.name) || 0;
+    const totalPoints = basePoints * quantity;
+    const formattedPoints = totalPoints.toLocaleString('es-MX');
+   
+    const pointsLabel = totalPoints === 1 ? 'PT' : 'PTS';
+    const scoreClass = basePoints > 0 ? '' : ' deck-avatar-score--zero';
     const previewData = this.buildPreviewDataset(card, fullImageUrl);
 
     return `
-      <div
-        class="deck-avatar card-hover-target"
-        data-card-id="${card.id}"
-        data-deck-type="${deckType}"
-        ${previewData}
-        title="${this.escapeAttribute(card.name)}"
-      >
-        <img
-          class="deck-avatar-image"
-          src="https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}"
-          alt="${this.escapeAttribute(card.name)}"
-          loading="lazy"
-          style="max-width: 50px; max-height: 80px;"
-        />
-        <span class="deck-avatar-qty">${quantity}</span>
-        ${points > 0 ? `<span class="deck-avatar-score">${points} pts</span>` : ''}
-        <div class="deck-avatar-actions">
-          <button
-            class="deck-avatar-action"
-            type="button"
-            data-action="add"
-            data-card-id="${card.id}"
-            data-deck-type="${deckType}"
-            title="Add one copy"
-          >
-            <span class="material-symbols-outlined">add</span>
-          </button>
-          <button
-            class="deck-avatar-action"
-            type="button"
-            data-action="remove"
-            data-card-id="${card.id}"
-            data-deck-type="${deckType}"
-            title="Remove one copy"
-          >
-            <span class="material-symbols-outlined">remove</span>
-          </button>
-          <button
-            class="deck-avatar-action"
-            type="button"
-            data-action="delete"
-            data-card-id="${card.id}"
-            data-deck-type="${deckType}"
-            title="Remove all copies"
-          >
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </div>
-      </div>
+     <div
+  class="deck-avatar card-hover-target"
+  style="--bg-image: url('https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}')"
+  data-card-id="${card.id}"
+  data-deck-type="${deckType}"
+  title="${this.escapeAttribute(card.name)}"
+  ${previewData}
+>
+  <img
+    class="deck-avatar-image"
+    src="https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}"
+    alt="${this.escapeAttribute(card.name)}"
+    loading="lazy"
+  />
+
+  <div class="deck-avatar-overlay">
+    <div class="deck-avatar-qty" aria-label="Cantidad de copias">
+      <span>${quantity}</span>
+    </div>
+
+    <div class="deck-avatar-actions" role="group" aria-label="Acciones de carta">
+      <button class="deck-avatar-action" type="button" data-action="add" data-card-id="${card.id}" data-deck-type="${deckType}" title="Agregar una copia">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+      <button class="deck-avatar-action" type="button" data-action="remove" data-card-id="${card.id}" data-deck-type="${deckType}" title="Quitar una copia">
+        <span class="material-symbols-outlined">remove</span>
+      </button>
+      <button class="deck-avatar-action" type="button" data-action="delete" data-card-id="${card.id}" data-deck-type="${deckType}" title="Eliminar todas las copias">
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+    </div>
+
+    <div class="deck-avatar-score${scoreClass}" aria-label="Puntos Genesys">
+      <span class="deck-avatar-score-number">${formattedPoints}</span>
+      <span class="deck-avatar-score-label">${pointsLabel}</span>
+    </div>
+  </div>
+</div>
     `;
   }
 

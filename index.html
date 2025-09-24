@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/yugi.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub---"
@@ -26,8 +26,7 @@
               <input id="deck-name-input" type="text" placeholder="Name your deck" maxlength="40" autocomplete="off" />
             </div>
             <div class="toolbar">
-              <button id="new-deck" class="toolbar-btn" data-icon="add">New deck</button>
-              <button id="save-deck" class="toolbar-btn" data-icon="save">Save</button>
+              <button id="new-deck" class="toolbar-btn" data-icon="plus">New deck</button>
               <button id="import-deck" class="toolbar-btn" data-icon="upload">Import</button>
               <button id="export-deck" class="toolbar-btn" data-icon="download">Export</button>
             </div>
@@ -66,7 +65,7 @@
               <div class="deck-row deck-row-main">
                 <div class="deck-row-header">
                   <h3>Main deck</h3>
-                  <span class="deck-counter" id="main-count">(0/60)</span>
+                  <span class="deck-counter" id="main-count">[0/60]</span>
                 </div>
                 <div id="main-deck" class="deck-lane" data-deck="main"></div>
               </div>
@@ -74,7 +73,7 @@
               <div class="deck-row deck-row-extra">
                 <div class="deck-row-header">
                   <h3>Extra deck</h3>
-                  <span class="deck-counter" id="extra-count">(0/15)</span>
+                  <span class="deck-counter" id="extra-count">[0/15]</span>
                 </div>
                 <div id="extra-deck" class="deck-lane" data-deck="extra"></div>
               </div>
@@ -82,7 +81,7 @@
               <div class="deck-row deck-row-side">
                 <div class="deck-row-header">
                   <h3>Side deck</h3>
-                  <span class="deck-counter" id="side-count">(0/15)</span>
+                  <span class="deck-counter" id="side-count">[0/15]</span>
                 </div>
                 <div id="side-deck" class="deck-lane" data-deck="side"></div>
               </div>
@@ -97,9 +96,75 @@
               </div>
             </div>
 
-            <div class="search-bar">
-              <input type="text" id="card-search" placeholder="Search cards by name" autocomplete="off" />
-              <button id="search-btn" class="search-btn" data-icon="search">Search</button>
+            <div class="search-controls">
+              <div class="search-bar">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="text" id="card-search" placeholder="Search cards by name" autocomplete="off" />
+              </div>
+              <div class="search-filter-actions">
+                <button
+                  id="filters-toggle-btn"
+                  class="search-control-btn search-control-btn--icon"
+                  type="button"
+                  aria-controls="search-filters"
+                  aria-expanded="false"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">tune</span>
+                  <span class="sr-only">Show filters</span>
+                </button>
+              </div>
+              <div id="search-filters" class="search-filters" hidden>
+                <label>
+                  Type
+                  <select id="filter-type">
+                    <option value="">Any</option>
+                    <option value="Effect Monster">Effect Monster</option>
+                    <option value="Normal Monster">Normal Monster</option>
+                    <option value="Fusion Monster">Fusion Monster</option>
+                    <option value="Synchro Monster">Synchro Monster</option>
+                    <option value="XYZ Monster">XYZ Monster</option>
+                    <option value="Link Monster">Link Monster</option>
+                    <option value="Ritual Monster">Ritual Monster</option>
+                  </select>
+                </label>
+                <label>
+                  Attribute
+                  <select id="filter-attribute">
+                    <option value="">Any</option>
+                    <option value="LIGHT">LIGHT</option>
+                    <option value="DARK">DARK</option>
+                    <option value="EARTH">EARTH</option>
+                    <option value="WATER">WATER</option>
+                    <option value="FIRE">FIRE</option>
+                    <option value="WIND">WIND</option>
+                    <option value="DIVINE">DIVINE</option>
+                  </select>
+                </label>
+                <label>
+                  Level / Rank
+                  <select id="filter-level">
+                    <option value="">Any</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                  </select>
+                </label>
+                <div class="search-filters-footer">
+                  <button
+                    id="filters-clear-btn"
+                    class="search-control-btn search-control-btn--ghost"
+                    type="button"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div id="search-results" class="search-results"></div>
