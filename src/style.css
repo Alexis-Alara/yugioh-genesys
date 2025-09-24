@@ -1,0 +1,771 @@
+/* Yu-Gi-Oh! Deck Builder Styling */
+:root {
+  --primary-blue: #003d6b;
+  --secondary-gold: #ffd700;
+  --accent-red: #dc143c;
+  --dark-blue: #001f3f;
+  --light-blue: #87ceeb;
+  --card-bg: #f8f9fa;
+  --border-color: #ddd;
+  --success-color: #28a745;
+  --error-color: #dc3545;
+  --warning-color: #ffc107;
+  
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+  min-height: 100vh;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  color: white;
+  background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Header Styling */
+header {
+  text-align: center;
+  padding: 2rem 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  border: 2px solid var(--secondary-gold);
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: var(--secondary-gold);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 0.5rem;
+}
+
+header p {
+  font-size: 1.2rem;
+  color: var(--light-blue);
+}
+
+/* Main Layout */
+main {
+  display: grid;
+  gap: 2rem;
+}
+
+section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+h2, h3 {
+  color: var(--secondary-gold);
+  margin-bottom: 1rem;
+}
+
+.page-container {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 20px; 
+  height: 100%; 
+}
+
+/* Search Section */
+.search-section {
+  border: 1px solid #666;
+  padding: 10px;
+  background: #eee;
+}
+
+.search-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+#card-search {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 5px;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+}
+
+#card-search:focus {
+  outline: none;
+  border-color: var(--secondary-gold);
+}
+
+button {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(145deg, var(--secondary-gold), #e6c200);
+  color: var(--dark-blue);
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Card Grid for Search Results */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.5rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.card-item {
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.card-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border-color: var(--secondary-gold);
+}
+
+.card-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+}
+
+.card-name {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--dark-blue);
+  margin-bottom: 0.25rem;
+}
+
+.card-type, .card-attribute, .card-level, .card-stats {
+  font-size: 0.8rem;
+  margin: 0.25rem 0;
+  color: #666;
+}
+
+.add-card-btn {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.add-card-btn:hover {
+  background: #218838;
+}
+
+/* Compact Card Styles for 8-column layout */
+.card-item-compact {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: #333;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  max-height: 150px;
+  max-width: 100px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-item-compact:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: var(--secondary-gold);
+}
+
+.card-image-compact {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.card-image-compact img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.card-level-badge {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background: rgba(255, 215, 0, 0.9);
+  color: #333;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.card-attribute-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(220, 20, 60, 0.9);
+  color: white;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.card-info-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.card-name-compact {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--dark-blue);
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-type-compact {
+  font-size: 0.65rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-stats-compact {
+  font-size: 0.65rem;
+  color: var(--accent-red);
+  font-weight: bold;
+  margin-top: auto;
+}
+
+.add-card-btn-compact {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: 8%;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.add-card-btn-compact:hover {
+  background: #218838;
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Deck Section */
+
+.deck-section {
+  display: flex;
+  flex-direction: column; 
+  gap: 15px; 
+}
+
+.deck,
+.extra-deck,
+.side-deck {
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: #f9f9f9;
+}
+
+.deck-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60%, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.deck-column h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+}
+
+.deck-area {
+  min-height: 300px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  align-content: start;
+}
+
+/* Deck Header and Genesys Points */
+.deck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--accent-color);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.deck-header h2 {
+  color: var(--text-color);
+  margin: 0;
+}
+
+.genesys-counter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-color);
+}
+
+.genesys-label {
+  color: var(--text-color);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.genesys-points {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  color: #000;
+  font-weight: bold;
+  font-size: 16px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  min-width: 40px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Card Genesys Points Styles */
+.card-genesys-points,
+.deck-card-points {
+  background: linear-gradient(45deg, #f59f27, #ffed4e);
+  color: #000;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.card-genesys-points[data-points="0"],
+.deck-card-points[data-points="0"] {
+  background: #ffffff;
+  color: white;
+}
+
+.card-genesys-points[data-points="5"],
+.deck-card-points[data-points="5"] {
+  background: #ffffff;
+  color: #000;
+}
+
+.card-genesys-points[data-points="10"],
+.deck-card-points[data-points="10"] {
+  background: #ffffff;
+  color: white;
+}
+
+.card-genesys-points[data-points="15"],
+.deck-card-points[data-points="15"] {
+  background: #ffffff;
+  color: white;
+}
+
+.card-genesys-points[data-points="100"],
+.deck-card-points[data-points="100"] {
+  background: #ffffff;
+  color: white;
+}
+
+.empty-deck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Deck Cards */
+.deck-cards {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.deck-card-item {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px;
+  transition: all 0.3s ease;
+  position: relative;
+  width: 100%;
+  max-width: 90px;
+}
+
+.deck-card-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.deck-card-image {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.deck-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.card-quantity {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.deck-card-info {
+  padding: 4px 2px 2px;
+  text-align: center;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.deck-card-name {
+  font-size: 9px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 2px;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  height: 20px;
+}
+
+.deck-card-type {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 2px;
+}
+
+/* Puntos Genesys específicos para cartas del deck */
+.deck-card-item .deck-card-points {
+  font-size: 7px;
+  padding: 1px 3px;
+  border-radius: 2px;
+  font-weight: bold;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  z-index: 2;
+  min-width: 16px;
+  text-align: center;
+}
+
+.deck-card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1px;
+  margin-top: auto;
+}
+
+.add-one-btn, .remove-one-btn, .remove-all-btn {
+  padding: 1px 3px;
+  font-size: 8px;
+  min-width: 18px;
+  height: 16px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.add-one-btn {
+  background: var(--success-color);
+  color: white;
+}
+
+.remove-one-btn {
+  background: var(--warning-color);
+  color: #333;
+}
+
+.remove-all-btn {
+  background: var(--error-color);
+  color: white;
+}
+
+/* Deck Count Colors */
+.count-normal {
+  color: var(--light-blue);
+}
+
+.count-warning {
+  color: var(--warning-color);
+}
+
+.count-full {
+  color: var(--accent-red);
+  font-weight: bold;
+}
+
+/* Deck Actions */
+.deck-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.deck-actions button {
+  flex: 1;
+  min-width: 150px;
+}
+
+#save-deck {
+  background: linear-gradient(145deg, var(--success-color), #1e7e34);
+}
+
+#load-deck {
+  background: linear-gradient(145deg, var(--primary-blue), var(--dark-blue));
+}
+
+#clear-deck {
+  background: linear-gradient(145deg, var(--error-color), #c82333);
+}
+
+/* Loading and Error States */
+.loading, .error, .no-results {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.error {
+  color: var(--error-color);
+}
+
+.results-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.results-header h4 {
+  color: var(--secondary-gold);
+}
+
+/* Messages */
+.message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  max-width: 300px;
+}
+
+.message.show {
+  transform: translateX(0);
+}
+
+.message-success {
+  background: var(--success-color);
+}
+
+.message-error {
+  background: var(--error-color);
+}
+
+.message-info {
+  background: var(--primary-blue);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .card-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  .deck-area {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .card-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .deck-area {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  #app {
+    padding: 0.5rem;
+  }
+  
+  .deck-area {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+  
+  .deck-card-item {
+    max-width: 70px;
+  }
+  
+  .deck-card-image {
+    height: 90px;
+  }
+  
+  header h1 {
+    font-size: 2rem;
+  }
+  
+  .search-container {
+    flex-direction: column;
+  }
+  
+  .deck-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+  }
+  
+  .card-item-compact {
+    min-height: 160px;
+    padding: 0.4rem;
+  }
+  
+  .card-image-compact {
+    height: 60px;
+  }
+  
+  .card-name-compact {
+    font-size: 0.7rem;
+  }
+  
+  .deck-actions {
+    flex-direction: column;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-gold);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e6c200;
+}

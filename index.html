@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yu-Gi-Oh! Deck Builder</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Yu-Gi-Oh! Deck Builder</h1>
+        <p>Construye tu deck perfecto</p>
+      </header>
+      
+      <main>
+        <div class="page-container">
+
+        <section id="deck-section">
+          <div class="deck-actions">
+            <button id="save-deck">Guardar Deck</button>
+            <button id="load-deck">Cargar Deck</button>
+            <button id="clear-deck">Limpiar Deck</button>
+          </div>
+          <div class="deck-header">
+            <h2>Mi Deck</h2>
+            <div class="genesys-counter">
+              <span class="genesys-label">Puntos Genesys:</span>
+              <span id="genesys-points" class="genesys-points">0</span>
+            </div>
+          </div>
+          
+          <div class="deck-container">
+            <div class="deck-column">
+              <h3>Main Deck <span id="main-count">(0/60)</span></h3>
+              <div id="main-deck" class="deck-area"></div>
+            </div>
+            
+            <div class="deck-column">
+              <h3>Extra Deck <span id="extra-count">(0/15)</span></h3>
+              <div id="extra-deck" class="deck-area"></div>
+            </div>
+            
+            <div class="deck-column">
+              <h3>Side Deck <span id="side-count">(0/15)</span></h3>
+              <div id="side-deck" class="deck-area"></div>
+            </div>
+          </div>
+          
+          
+        </section>
+
+                <section id="search-section">
+          <h2>Buscar Cartas</h2>
+          <div class="search-container">
+            <input type="text" id="card-search" placeholder="Buscar cartas...">
+            <button id="search-btn">Buscar</button>
+          </div>
+          <div id="search-results" class="card-grid"></div>
+        </section>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vite-project</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
