@@ -214,7 +214,6 @@ export class CardSearchUI {
   }
 
   private createCardElement(card: Card): string {
-    const thumbUrl = card.card_images?.[0]?.url_small || '';
     const fullImageUrl = card.card_images?.[0]?.id?.toString() || '';
     const atk = card.atk !== undefined ? card.atk.toString() : '';
     const def = card.def !== undefined ? card.def.toString() : '';
