@@ -22,7 +22,9 @@ export class CardHoverPreview {
   private atkEl: HTMLElement;
   private defEl: HTMLElement;
   private descEl: HTMLElement;
-  private activeTarget: HTMLElement | null = null;
+  private closeBtn: HTMLButtonElement;
+  private isHoverMode: boolean;
+  private descriptionLimit: number;
 
   constructor() {
     this.overlay = this.createOverlay();
@@ -39,12 +41,21 @@ export class CardHoverPreview {
     this.atkEl = this.overlay.querySelector('.stat-atk') as HTMLElement;
     this.defEl = this.overlay.querySelector('.stat-def') as HTMLElement;
     this.descEl = this.overlay.querySelector('.preview-desc') as HTMLElement;
+    this.closeBtn = this.overlay.querySelector('.preview-close') as HTMLButtonElement;
 
-    document.addEventListener('mouseover', this.handleMouseOver, true);
-    document.addEventListener('mousemove', this.handleMouseMove);
-    document.addEventListener('mouseout', this.handleMouseOut, true);
-    window.addEventListener('scroll', this.handleViewportChange, true);
-    window.addEventListener('resize', this.handleViewportChange);
+    this.isHoverMode = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    this.descriptionLimit = this.isHoverMode ? 420 : Number.POSITIVE_INFINITY;
+
+    if (!this.isHoverMode) {
+      this.overlay.classList.add('touch-mode');
+    }
+
+    // Open preview only via the 'View details' button (click). No hover-to-open.
+    document.addEventListener('click', this.handleDetailButtonClick);
+    this.closeBtn.addEventListener('click', this.handleCloseClick);
+    this.overlay.addEventListener('click', this.handleOverlayBackgroundClick);
+
+    // Do not auto-hide on scroll/resize; preview remains until closed via X
   }
 
   private createOverlay(): HTMLElement {
@@ -52,6 +63,9 @@ export class CardHoverPreview {
     wrapper.className = 'card-preview-overlay';
     wrapper.innerHTML = `
       <div class="preview-shell">
+        <button type="button" class="preview-close" aria-label="Close preview">
+          <span class="material-symbols-outlined">close</span>
+        </button>
         <div class="preview-image">
           <img src="" alt="Vista previa de carta" />
         </div>
@@ -77,50 +91,65 @@ export class CardHoverPreview {
     return wrapper;
   }
 
-  private handleMouseOver = (event: MouseEvent): void => {
-    const target = (event.target as HTMLElement).closest('.card-hover-target') as HTMLElement | null;
+  // Hover-based preview has been disabled; interaction is click-only via the trigger button.
 
+  private handleDetailButtonClick = (event: MouseEvent): void => {
+    const trigger = (event.target as HTMLElement).closest('.card-preview-trigger') as HTMLElement | null;
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const target = trigger.closest('.card-hover-target') as HTMLElement | null;
     if (!target) {
       return;
     }
 
-    if (this.activeTarget !== target) {
-      this.activeTarget = target;
-      const data = this.extractData(target);
-      this.populate(data);
-      this.show();
-      this.positionOverlay(event);
-    }
+    this.openPreviewForTarget(target, event);
   };
 
-  private handleMouseMove = (event: MouseEvent): void => {
-    if (!this.activeTarget) {
-      return;
-    }
-    this.positionOverlay(event);
-  };
-
-  private handleMouseOut = (event: MouseEvent): void => {
-    const fromTarget = (event.target as HTMLElement).closest('.card-hover-target');
-    const toTarget = (event.relatedTarget as HTMLElement | null)?.closest('.card-hover-target') || null;
-
-    if (fromTarget && fromTarget === this.activeTarget && toTarget !== this.activeTarget) {
-      this.activeTarget = null;
-      this.hide();
-    }
-  };
-
-  private handleViewportChange = (): void => {
-    this.activeTarget = null;
+  private handleCloseClick = (event: MouseEvent): void => {
+    event.preventDefault();
     this.hide();
   };
 
+  private handleOverlayBackgroundClick = (event: MouseEvent): void => {
+    // Prevent clicks inside the overlay from bubbling to document
+    event.stopPropagation();
+    // Do not close on background click; close only via the X button
+    return;
+  };
+
+  private openPreviewForTarget(target: HTMLElement, event?: MouseEvent): void {
+    const data = this.extractData(target);
+    this.populate(data);
+    this.show();
+
+
+    if (event) {
+      this.positionOverlay(event);
+    } else if (!this.isHoverMode) {
+      this.overlay.scrollTop = 0;
+    } else {
+      // Fallback: center the overlay if no event is provided
+      const left = Math.max(16, Math.floor((window.innerWidth - (this.overlay.offsetWidth || 560)) / 2));
+      const top = Math.max(16, Math.floor((window.innerHeight - (this.overlay.offsetHeight || 520)) / 2));
+      this.overlay.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+    }
+  }
+
   private show = (): void => {
     this.overlay.classList.add('is-active');
+    if (!this.isHoverMode) {
+      this.overlay.classList.add('is-touch-active');
+    }
   };
 
   private hide = (): void => {
     this.overlay.classList.remove('is-active');
+    this.overlay.classList.remove('is-touch-active');
   };
 
   private clearOverlay(): void {
@@ -269,7 +298,7 @@ export class CardHoverPreview {
       this.overlay.classList.remove('has-stats');
     }
 
-    const normalizedDesc = data.desc ? this.truncate(data.desc.replace(/\s+/g, ' ').trim(), 420) : '';
+    const normalizedDesc = data.desc ? this.truncate(data.desc.replace(/\s+/g, ' ').trim()) : '';
     this.descEl.textContent = normalizedDesc;
   }
 
@@ -284,10 +313,15 @@ export class CardHoverPreview {
     element.textContent = value;
   }
 
-  private truncate(value: string, limit: number): string {
-    if (value.length <= limit) {
+  private truncate(value: string): string {
+    if (!Number.isFinite(this.descriptionLimit)) {
       return value;
     }
-    return `${value.slice(0, limit - 3)}...`;
+
+    if (value.length <= this.descriptionLimit) {
+      return value;
+    }
+    const safeLimit = Math.max(3, Math.floor(this.descriptionLimit));
+    return `${value.slice(0, safeLimit - 3)}...`;
   }
 }

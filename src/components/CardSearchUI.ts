@@ -214,7 +214,6 @@ export class CardSearchUI {
   }
 
   private createCardElement(card: Card): string {
-    const thumbUrl = card.card_images?.[0]?.url_small || '';
     const fullImageUrl = card.card_images?.[0]?.id || 0;
     const atk = card.atk != null ? card.atk.toString() : '';
     const def = card.def != null ? card.def.toString() : '';
@@ -245,6 +244,7 @@ export class CardSearchUI {
           <span class="search-card-race">${this.escapeText(card.race)}</span>
           ${stats ? `<span class="search-card-stats">${this.escapeText(stats)}</span>` : ''}
         </div>
+        <button class="card-preview-trigger search-card-detail" type="button">View details</button>
         <button
           class="search-card-add add-card-btn-compact"
           data-card-id="${card.id}"

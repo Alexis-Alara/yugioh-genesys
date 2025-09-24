@@ -772,10 +772,13 @@ body {
 
 .card-preview-overlay.is-active {
   opacity: 1;
+  /* Enable interaction when overlay is shown on any device */
+  pointer-events: auto;
 }
 
 .preview-shell {
   display: grid;
+  position: relative;
   grid-template-columns: 280px 400px;
   gap: 24px;
   padding: 28px;
@@ -786,6 +789,9 @@ body {
   backdrop-filter: blur(22px);
   width: auto;
   max-width: 90vw;
+  /* Allow scrolling if content is taller than the viewport */
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .preview-image {
@@ -797,8 +803,9 @@ body {
 
 .preview-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 520px;
+  object-fit: contain;
   display: block;
 }
 
@@ -864,8 +871,9 @@ body {
   font-size: 0.82rem;
   color: rgba(235, 240, 255, 0.82);
   line-height: 1.6;
-  max-height: 220px;
-  overflow: hidden;
+  /* Let the container scroll; do not clamp description height here */
+  max-height: none;
+  overflow-y: visible;
 }
 
 /* Count badges */
@@ -1197,7 +1205,7 @@ body {
 }
 
 .preview-desc {
-  max-height: 240px;
+  max-height: 320px;
   overflow-y: auto;
   padding-right: 6px;
 }
@@ -1387,3 +1395,123 @@ NUEVO DISEÑO v2: AVATAR DE CARTA CON FONDO INMERSIVO
 .deck-avatar-toolbar {
   display: none; 
 }
+
+/* Mobile preview adjustments */
+.card-preview-trigger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(74, 214, 255, 0.32);
+  background: rgba(7, 11, 20, 0.82);
+  color: var(--color-text);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+/* Remove hover styling for the View details button */
+
+.deck-avatar-detail {
+  margin-top: 12px;
+  width: 100%;
+  /* Ensure visibility over image and gradient inside deck-avatar */
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 36px;
+}
+
+.search-card-detail {
+  margin-top: 12px;
+  align-self: flex-start;
+  grid-column: 1 / -1;
+}
+
+/* Show the details button only on hover of the card containers */
+.deck-avatar:hover .deck-avatar-detail {
+  display: inline-flex;
+}
+.search-card:hover .search-card-detail {
+  display: inline-flex;
+}
+
+.card-preview-overlay.touch-mode {
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: translate3d(0, 0, 0);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.card-preview-overlay.touch-mode.is-touch-active {
+  pointer-events: auto;
+}
+
+.card-preview-overlay.touch-mode .preview-shell {
+  width: min(520px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.card-preview-overlay.touch-mode .preview-image img {
+  max-height: none;
+}
+
+.preview-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(74, 214, 255, 0.35);
+  background: rgba(7, 11, 20, 0.82);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.preview-close:hover {
+  border-color: rgba(74, 214, 255, 0.6);
+  background: rgba(74, 214, 255, 0.18);
+}
+
+/* Close button is visible on all devices; no special touch-mode override needed */
+
+.card-preview-overlay.touch-mode .preview-desc {
+  max-height: none;
+}
+
+@media (max-width: 1024px), (hover: none) {
+  .deck-avatar {
+    gap: 18px;
+  }
+
+  /* Keep actions hidden by default; they will appear on hover-capable devices only */
+  .deck-avatar-actions {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .search-card {
+    grid-template-columns: 80px auto;
+  }
+}
+

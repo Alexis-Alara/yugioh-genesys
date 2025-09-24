@@ -144,6 +144,7 @@ export class DeckDisplayUI {
       <span class="deck-avatar-score-number">${formattedPoints}</span>
       <span class="deck-avatar-score-label">${pointsLabel}</span>
     </div>
+    <button class="card-preview-trigger deck-avatar-detail" type="button">View details</button>
   </div>
 </div>
     `;
