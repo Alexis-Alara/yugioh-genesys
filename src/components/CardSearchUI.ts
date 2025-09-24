@@ -220,7 +220,7 @@ export class CardSearchUI {
       atk = card.atk != null ? card.atk.toString() : '';
       def = card.def != null ? card.def.toString() : '';
     }
-    const thumbUrl = card.card_images?.[0]?.url_small || '';
+    //const thumbUrl = card.card_images?.[0]?.url_small || '';
     const fullImageUrl = card.card_images?.[0]?.id || 0;
     const stats = atk && def ? `${atk}/${def}` : atk ? `${atk}/?` : def ? `?/${def}` : '';
     const level = card.level ? `LV.${card.level}` : card.linkval ? `LINK-${card.linkval}` : '';
