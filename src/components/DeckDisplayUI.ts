@@ -2,7 +2,7 @@ import type { DeckState, DeckCard, DeckTypeValue } from '../types/Card';
 import { DeckType } from '../types/Card';
 import { GenesysService } from '../services/GenesysService';
 
-const AVATAR_PLACEHOLDER = 'https://www.google.com/url?sa=i&url=https%3A%2F%2Faminoapps.com%2Fc%2Fyugioh-espanol%2Fpage%2Fblog%2Fcartas-caracteristicas-de-yu-gi-oh%2F1YvK_oxh6u0ozo6nndaV2aMdbQ8eBzkG5V&psig=AOvVaw0JSkRLYInOdvYtnc1Id34T&ust=1758764242524000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCNjou8Oh8I8DFQAAAAAdAAAAABAE';
+//const AVATAR_PLACEHOLDER = 'https://www.google.com/url?sa=i&url=https%3A%2F%2Faminoapps.com%2Fc%2Fyugioh-espanol%2Fpage%2Fblog%2Fcartas-caracteristicas-de-yu-gi-oh%2F1YvK_oxh6u0ozo6nndaV2aMdbQ8eBzkG5V&psig=AOvVaw0JSkRLYInOdvYtnc1Id34T&ust=1758764242524000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCNjou8Oh8I8DFQAAAAAdAAAAABAE';
 
 export class DeckDisplayUI {
   private mainDeckContainer: HTMLElement;
@@ -112,7 +112,7 @@ export class DeckDisplayUI {
       >
         <img
           class="deck-avatar-image"
-          src="http://127.0.0.1:8000/cards/${fullImageUrl}"
+          src="http://207.244.226.105:8000/cards/${fullImageUrl}"
           alt="${this.escapeAttribute(card.name)}"
           loading="lazy"
           style="max-width: 50px; max-height: 80px;"
@@ -253,7 +253,7 @@ export class DeckDisplayUI {
       `data-card-atk="${card.atk ?? ''}"`,
       `data-card-def="${card.def ?? ''}"`,
       `data-card-desc="${sanitizedDesc}"`,
-      `data-card-image="http://127.0.0.1:8000/cards/${imageUrl}"`
+      `data-card-image="http://207.244.226.105:8000/cards/${imageUrl}"`
     ];
 
     return attrs.join(' ');
