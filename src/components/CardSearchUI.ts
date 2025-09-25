@@ -215,8 +215,12 @@ export class CardSearchUI {
 
   private createCardElement(card: Card): string {
     const fullImageUrl = card.card_images?.[0]?.id?.toString() || '';
-    const atk = card.atk !== undefined ? card.atk.toString() : '';
-    const def = card.def !== undefined ? card.def.toString() : '';
+    let atk = '';
+    let def = '';
+    if (card) {
+      atk = card.atk != null ? card.atk.toString() : '';
+      def = card.def != null ? card.def.toString() : '';
+    }
     const stats = atk && def ? `${atk}/${def}` : atk ? `${atk}/?` : def ? `?/${def}` : '';
     const level = card.level ? `LV.${card.level}` : card.linkval ? `LINK-${card.linkval}` : '';
     const attribute = card.attribute ? card.attribute : '';
@@ -231,7 +235,7 @@ export class CardSearchUI {
     return `
       <div class="search-card card-hover-target" data-card-id="${card.id}" ${previewAttrs}>
         <div class="search-card-thumb">
-          <img src="http://127.0.0.1:8000/cards/${fullImageUrl}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
+          <img src="https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
           ${level ? `<span class="search-card-level">${this.escapeText(level)}</span>` : ''}
           ${attribute ? `<span class="search-card-attribute">${this.escapeText(attribute)}</span>` : ''}
         </div>
@@ -377,13 +381,13 @@ export class CardSearchUI {
       `data-card-type="${this.escapeAttribute(card.type)}"`,
       `data-card-race="${this.escapeAttribute(card.race)}"`,
       `data-card-attribute="${this.escapeAttribute(card.attribute || '')}"`,
-      `data-card-level="${card.level !== undefined ? card.level.toString() : ''}"`,
-      `data-card-link="${card.linkval !== undefined ? card.linkval.toString() : ''}"`,
-      `data-card-scale="${card.scale !== undefined ? card.scale.toString() : ''}"`,
-      `data-card-atk="${card.atk !== undefined ? card.atk.toString() : ''}"`,
-      `data-card-def="${card.def !== undefined ? card.def.toString() : ''}"`,
+      `data-card-level="${card?.level?.toString() ?? ''}"`,
+      `data-card-link="${card?.linkval?.toString() ?? ''}"`,
+      `data-card-scale="${card?.scale?.toString() ?? ''}"`,
+      `data-card-atk="${card?.atk?.toString() ?? ''}"`,
+      `data-card-def="${card?.def?.toString() ?? ''}"`,
       `data-card-desc="${sanitizedDesc}"`,
-      `data-card-image="http://127.0.0.1:8000/cards/${imageUrl}"`,
+      `data-card-image="https://yugiohgenesys.com.mx/api/cards/${imageUrl}"`,
     ];
 
     return attrs.join(' ');
