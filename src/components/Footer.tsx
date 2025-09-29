@@ -19,6 +19,11 @@ const Footer: React.FC = () => {
           <li>
             <Link to="/contact">Contact</Link>
           </li>
+          <li>
+            <a>
+                © 2025 yugiohgenesys.com.mx
+            </a>
+          </li>
         </ul>
       </nav>
     </footer>
