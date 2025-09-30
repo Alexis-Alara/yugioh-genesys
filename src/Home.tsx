@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import './style.css';
 import { DeckManager } from './services/DeckManager';
+import { GenesysService } from './services/GenesysService';
 import { DeckStorageService } from './services/DeckStorageService';
 import { CardSearchUI } from './components/CardSearchUI';
 import { DeckDisplayUI } from './components/DeckDisplayUI';
@@ -124,6 +125,389 @@ const Home: React.FC = () => {
     showMessage(`Deck "${deckName}" exported as .ydk file.`, 'success');
   };
 
+  const ensureJsPdf = async (): Promise<any | null> => {
+    const existing = (window as any)?.jspdf?.jsPDF;
+    if (existing) return existing;
+    // Attempt to load from CDN dynamically
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load jsPDF CDN'));
+      document.head.appendChild(script);
+    }).catch(() => {});
+    return (window as any)?.jspdf?.jsPDF || null;
+  };
+
+  const buildDecklistPdfDoc = async (deckState: DeckState, genesysPoints: number) => {
+    const jsPDF = await ensureJsPdf();
+    if (!jsPDF) return null;
+      try {
+      // Create Letter portrait document (8.5x11in -> 612x792 pt)
+      const doc = new jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait' });
+      const page = { w: 612, h: 792 };
+      const margin = 28;
+
+      // Utilities
+      const drawHeaderCell = (x: number, y: number, w: number, h: number, label: string) => {
+        doc.setFillColor(230);
+        doc.rect(x, y, w, h, 'F');
+        doc.setDrawColor(120);
+        doc.rect(x, y, w, h);
+        doc.setTextColor(0);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.text(label, x + 6, y + h / 2 + 3);
+      };
+      const drawCell = (x: number, y: number, w: number, h: number) => {
+        doc.setDrawColor(150);
+        doc.rect(x, y, w, h);
+      };
+      const colHeader = (x: number, y: number, w: number, title: string, alignRight: boolean = false) => {
+        doc.setFillColor(235);
+        doc.setDrawColor(120);
+        doc.rect(x, y, w, 20, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        if (alignRight) {
+          doc.text(title, x + w - 6, y + 14, { align: 'right' });
+        } else {
+          doc.text(title, x + 6, y + 14);
+        }
+      };
+
+      // Split main deck into monster/spell/trap
+      const mainMonsters = deckState.mainDeck.filter((d) => !(d.card.type || '').includes('Spell') && !(d.card.type || '').includes('Trap'));
+      const mainSpells = deckState.mainDeck.filter((d) => (d.card.type || '').includes('Spell'));
+      const mainTraps = deckState.mainDeck.filter((d) => (d.card.type || '').includes('Trap'));
+
+      const totalMainMon = mainMonsters.reduce((t, c) => t + c.quantity, 0);
+      const totalMainSpell = mainSpells.reduce((t, c) => t + c.quantity, 0);
+      const totalMainTrap = mainTraps.reduce((t, c) => t + c.quantity, 0);
+      const totalMain = deckState.mainDeck.reduce((t, c) => t + c.quantity, 0);
+      const totalExtra = deckState.extraDeck.reduce((t, c) => t + c.quantity, 0);
+      const totalSide = deckState.sideDeck.reduce((t, c) => t + c.quantity, 0);
+
+      // --- Final Layout Refactor ---
+      const topY = margin;
+      const lightGray = 230;
+      const darkGray = 100;
+      const gap = 10;
+
+      // --- TOP ROW: Instructions and Judge box ---
+      const topRowH = 36;
+      // Left: Instructions
+      const instrX = margin; const instrW = 280;
+      doc.setLineWidth(1.5); doc.setDrawColor(0);
+      doc.setFillColor(lightGray); doc.rect(instrX, topY, instrW, topRowH, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text('Please write all card names completely and legibly.', instrX + instrW / 2, topY + 14, { align: 'center' });
+      doc.setFont('helvetica','normal');
+      doc.text('Please include the quantity for each card.', instrX + instrW / 2, topY + 26, { align: 'center' });
+
+      // Right: Judge Use Only (spans the rest of the width)
+      const judgeX = instrX + instrW + gap;
+      const judgeW = page.w - margin - judgeX;
+      doc.setLineWidth(1.5); doc.setDrawColor(0); doc.rect(judgeX, topY, judgeW, topRowH);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text('Judge Use Only:', judgeX + 8, topY + 22);
+      const letterBoxW = 18, smallBoxW = 14, groupGap = 4;
+      let mseX = judgeX + 75;
+      ;(['M','S','E'] as const).forEach(t => {
+        doc.setFillColor(lightGray); doc.rect(mseX, topY + 8, letterBoxW, 20, 'F');
+        doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text(t, mseX + 5, topY + 22);
+        mseX += letterBoxW + 2;
+        doc.rect(mseX, topY + 8, smallBoxW, 20); mseX += smallBoxW + 2;
+        doc.rect(mseX, topY + 8, smallBoxW, 20); mseX += smallBoxW + groupGap;
+      });
+
+      // --- BOTTOM ROW: Player, Event, and Totals ---
+      const bottomRowY = topY + topRowH;
+      // Define widths and X positions for the three bottom panels
+      const playerInfoW = 280;
+      const eventInfoW = 200;
+      const playerX = margin;
+      const eventX = playerX + playerInfoW + gap;
+      const totalsX = (eventX + eventInfoW + gap) - 10;
+      const totalsW = page.w - margin - totalsX ;
+
+      // Left: Player Info
+      const fieldH = 22;
+      const labelBoxW = 90;
+      let py = bottomRowY;
+      const drawPlayerField = (label: string[], h: number) => {
+        doc.setLineWidth(1); doc.setDrawColor(darkGray); doc.rect(playerX, py, playerInfoW, h);
+        doc.rect(playerX, py, labelBoxW, h);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        if (label.length > 1) { doc.text(label[0], playerX + 6, py + 10); doc.text(label[1], playerX + 6, py + 20); }
+        else { doc.text(label[0], playerX + 6, py + 14); }
+        py += h;
+      };
+      drawPlayerField(['First & Middle', 'Name(s):'], 30);
+      drawPlayerField(['Last Name(s):'], fieldH);
+      doc.setLineWidth(1); doc.setDrawColor(darkGray); doc.rect(playerX, py, playerInfoW, fieldH);
+      doc.rect(playerX, py, labelBoxW, fieldH);
+      doc.text('CARD GAME ID:', playerX + 6, py + 14);
+      const boxSize = 15, boxGap = 2; let idX = playerX + labelBoxW + 8;
+      for (let i = 0; i < 10; i++) { doc.rect(idX, py + 3, boxSize, boxSize); idX += boxSize + boxGap; }
+
+      // Center: Event Info
+      py = bottomRowY;
+      const drawEventField = (label: string[], h: number) => {
+        doc.setLineWidth(1); doc.setDrawColor(darkGray); doc.rect(eventX, py, eventInfoW, h);
+        doc.rect(eventX, py, 60, h);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        if (label.length > 1) { doc.text(label[0], eventX + 4, py + 10); doc.text(label[1], eventX + 4, py + 20); }
+        else { doc.text(label[0], eventX + 4, py + 14); }
+        py += h;
+      };
+      drawEventField(['Event','Date:'], 30);
+      const dBoxW = 12, dGap = 2; let dx = eventX + 64, dy = bottomRowY + 8;
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(150);
+      const drawDateBox = (label: string) => { doc.text(label, dx + 3, dy - 1); doc.setDrawColor(darkGray); doc.rect(dx, dy, dBoxW, 14); dx += dBoxW + dGap; };
+      drawDateBox('M'); drawDateBox('M');
+      doc.setFont('helvetica','bold'); doc.setTextColor(0); doc.text('/', dx, dy + 10); dx += 6;
+      drawDateBox('D'); drawDateBox('D');
+      doc.setFont('helvetica','bold'); doc.setTextColor(0); doc.text('/', dx, dy + 10); dx += 6;
+      drawDateBox('Y'); drawDateBox('Y'); drawDateBox('Y'); drawDateBox('Y');
+      drawEventField(['Country of','Residency:'], fieldH);
+      drawEventField(['Event','Name:'], fieldH);
+
+      // Right: Last Name Initial & Main Deck Total
+      const bottomRowH = 30 + fieldH + fieldH;
+      doc.setLineWidth(1.5); doc.setDrawColor(0); doc.rect(totalsX, bottomRowY, totalsW, bottomRowH);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7);      doc.text('Last Name Initial', totalsX + totalsW / 2, bottomRowY + 12, { align: 'center' });
+      const initialBoxH = 22;
+      
+
+      const totalLabelsY = bottomRowY + 16 + initialBoxH + 10;
+      const totalValuesY = totalLabelsY + 15;
+      const halfTotalsW = (totalsW - 16) / 2;
+      const mainTotalX = totalsX + 8;
+      const pointTotalX = mainTotalX + halfTotalsW;
+
+      // Labels
+      doc.setFont('helvetica','normal'); doc.setFontSize(6);
+      doc.text('Main Deck', mainTotalX + halfTotalsW / 2, totalLabelsY, { align: 'center' });
+      doc.text('Total', mainTotalX + halfTotalsW / 2, totalLabelsY + 6, { align: 'center' });
+      doc.text('Point', pointTotalX + halfTotalsW / 2, totalLabelsY, { align: 'center' });
+      doc.text('Total', pointTotalX + halfTotalsW / 2, totalLabelsY + 6, { align: 'center' });
+
+
+      // Values
+      doc.setFont('helvetica','bold'); doc.setFontSize(8);
+      doc.text(String(totalMain), mainTotalX + halfTotalsW / 2, totalValuesY + 6, { align: 'center' });
+      doc.text(String(genesysPoints), pointTotalX + halfTotalsW / 2, totalValuesY + 6, { align: 'center' });
+
+      // Main Deck area: 3 columns (Monsters, Spells, Traps)
+      const afterTopY = topY + 36 + 30 + 22 + 22 + 10;
+      const mainTop = afterTopY + 10;
+      const mainH = 320;
+      const qtyColW = 28;
+      const ptsColW = 28; // placeholder PTS column
+      const colGap = 8;
+      const totalW = page.w - margin * 2;
+      const threeColW = (totalW - colGap * 2) / 3;
+
+      type Row = { name: string; qty: number };
+      const toRows = (arr: {card:any; quantity:number}[]): Row[] => arr.map((d) => ({ name: d.card.name, qty: d.quantity }));
+      const monRows = toRows(mainMonsters);
+      const spellRows = toRows(mainSpells);
+      const trapRows = toRows(mainTraps);
+
+      const getTotalPoints = (cards: {card:any; quantity:number}[]) => cards.reduce((sum, d) => sum + GenesysService.getCardPoints(d.card.name) * d.quantity, 0);
+      const totalMonPoints = getTotalPoints(mainMonsters);
+      const totalSpellPoints = getTotalPoints(mainSpells);
+      const totalTrapPoints = getTotalPoints(mainTraps);
+
+      const drawDeckColumn = (x: number, title: string, rows: Row[], totalQty: number, totalPts: number) => {
+        // Header bar
+        colHeader(x, mainTop, threeColW, title.toUpperCase());
+        // Table header: QTY | card name | PTS
+        const tableY = mainTop + 20;
+        drawHeaderCell(x, tableY, qtyColW, 20, 'QTY');
+        drawHeaderCell(x + qtyColW, tableY, threeColW - qtyColW - ptsColW, 20, '');
+        drawHeaderCell(x + threeColW - ptsColW, tableY, ptsColW, 20, 'PTS');
+        // Rows
+        const rowH = 18;
+        let ry = tableY + 20;
+        const maxRows = Math.floor((mainH - 60) / rowH); // leave space for total row
+        for (let i = 0; i < maxRows; i++) {
+          drawCell(x, ry, qtyColW, rowH);
+          drawCell(x + qtyColW, ry, threeColW - qtyColW - ptsColW, rowH);
+          drawCell(x + threeColW - ptsColW, ry, ptsColW, rowH);
+          const row = rows[i];
+          if (row) {
+            const cardPoints = GenesysService.getCardPoints(row.name);
+            const totalRowPoints = cardPoints * row.qty;
+            doc.setFont('helvetica','normal');
+            doc.setFontSize(7);
+            doc.text(String(row.qty), x + qtyColW / 2, ry + 12, { align: 'center' });
+            doc.text(row.name, x + qtyColW + 4, ry + 12);
+            doc.text(String(totalRowPoints), x + threeColW - ptsColW / 2, ry + 12, { align: 'center' });
+          }
+          ry += rowH;
+        }
+        // Total row
+        const totalRowY = ry;
+        const totalRowH = 14;
+        const totalQtyBoxW = qtyColW;
+        const totalPtsBoxW = ptsColW;
+        const totalLabelW = threeColW - totalQtyBoxW - totalPtsBoxW;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setDrawColor(darkGray);
+
+        // Qty Box
+        drawCell(x, totalRowY, totalQtyBoxW, totalRowH);
+        doc.text(String(totalQty), x + totalQtyBoxW / 2, totalRowY + 10, { align: 'center' });
+
+        // Label Box
+        drawCell(x + totalQtyBoxW, totalRowY, totalLabelW, totalRowH);
+        doc.text(`<<< TOTAL ${title.toUpperCase()}`, x + totalQtyBoxW + totalLabelW / 2, totalRowY + 10, { align: 'center' });
+
+        // Points Box
+        drawCell(x + totalQtyBoxW + totalLabelW, totalRowY, totalPtsBoxW, totalRowH);
+        doc.text(String(totalPts), x + totalQtyBoxW + totalLabelW + totalPtsBoxW / 2, totalRowY + 10, { align: 'center' });
+      };
+
+      drawDeckColumn(margin, 'Monster Cards', monRows, totalMainMon, totalMonPoints);
+      drawDeckColumn(margin + threeColW + colGap, 'Spell Cards', spellRows, totalMainSpell, totalSpellPoints);
+      drawDeckColumn(margin + (threeColW + colGap) * 2, 'Trap Cards', trapRows, totalMainTrap, totalTrapPoints);
+
+      // Divider bar for totals of main overall
+      
+
+      // Side and Extra Deck blocks
+      const subTop = mainTop + mainH + 10;
+      const subH = 300;
+
+      const totalSidePoints = getTotalPoints(deckState.sideDeck);
+      const totalExtraPoints = getTotalPoints(deckState.extraDeck);
+      const sideRows = toRows(deckState.sideDeck);
+      const extraRows = toRows(deckState.extraDeck);
+
+      const drawSubDeck = (x: number, title: string, rows: Row[], totalQty: number, totalPts: number) => {
+        colHeader(x, subTop, threeColW, title.toUpperCase());
+        const tableY = subTop + 20;
+        const rowH = 18;
+        let ry = tableY;
+
+        // Table header
+        drawHeaderCell(x, tableY, qtyColW, 20, 'QTY');
+        drawHeaderCell(x + qtyColW, tableY, threeColW - qtyColW - ptsColW, 20, '');
+        drawHeaderCell(x + threeColW - ptsColW, tableY, ptsColW, 20, 'PTS');
+        ry += 20;
+
+        const maxRows = Math.floor((subH - 60) / rowH);
+        for (let i = 0; i < maxRows; i++) {
+          drawCell(x, ry, qtyColW, rowH);
+          drawCell(x + qtyColW, ry, threeColW - qtyColW - ptsColW, rowH);
+          drawCell(x + threeColW - ptsColW, ry, ptsColW, rowH);
+          const row = rows[i];
+          if (row) {
+            const cardPoints = GenesysService.getCardPoints(row.name);
+            const totalRowPoints = cardPoints * row.qty;
+            doc.setFont('helvetica','normal');
+            doc.setFontSize(7);
+            doc.text(String(row.qty), x + qtyColW / 2, ry + 12, { align: 'center' });
+            doc.text(row.name, x + qtyColW + 4, ry + 12);
+            doc.text(String(totalRowPoints), x + threeColW - ptsColW / 2, ry + 12, { align: 'center' });
+          }
+          ry += rowH;
+        }
+
+        // Total row
+        const totalRowY = ry;
+        const totalRowH = 14;
+        const totalQtyBoxW = qtyColW;
+        const totalPtsBoxW = ptsColW;
+        const totalLabelW = threeColW - totalQtyBoxW - totalPtsBoxW;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setDrawColor(darkGray);
+
+        drawCell(x, totalRowY, totalQtyBoxW, totalRowH);
+        doc.text(String(totalQty), x + totalQtyBoxW / 2, totalRowY + 10, { align: 'center' });
+
+        drawCell(x + totalQtyBoxW, totalRowY, totalLabelW, totalRowH);
+        doc.text(`<<< TOTAL ${title.toUpperCase()}`, x + totalQtyBoxW + totalLabelW / 2, totalRowY + 10, { align: 'center' });
+
+        drawCell(x + totalQtyBoxW + totalLabelW, totalRowY, totalPtsBoxW, totalRowH);
+        doc.text(String(totalPts), x + totalQtyBoxW + totalLabelW + totalPtsBoxW / 2, totalRowY + 10, { align: 'center' });
+      };
+
+      drawSubDeck(margin, 'Side Deck', sideRows, totalSide, totalSidePoints);
+      drawSubDeck(margin + threeColW + colGap, 'Extra Deck', extraRows, totalExtra, totalExtraPoints);
+
+      const judgeColumnX = margin + (threeColW + colGap) * 2;
+      colHeader(judgeColumnX, subTop, threeColW, 'For Judge Use Only', true);
+
+      const drawJudgeBlock = (y: number, h: number, topLabel: string) => {
+        const blockX = judgeColumnX;
+        const blockW = threeColW;
+        const rowH1 = 20;
+        const rowH2 = 20;
+        const rowH3 = h - rowH1 - rowH2;
+
+        doc.setDrawColor(darkGray);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6);
+
+        // Main container for the block
+        doc.rect(blockX, y, blockW, h);
+
+        // Row 1
+        let currentY = y;
+        doc.rect(blockX, currentY, blockW, rowH1);
+        doc.text(topLabel, blockX + 4, currentY + 13);
+
+        // Row 2
+        currentY += rowH1;
+        const halfW = blockW / 2;
+        doc.rect(blockX, currentY, blockW, rowH2);
+        doc.line(blockX + halfW, currentY, blockX + halfW, currentY + rowH2); // Vertical divider
+        doc.text('Judge Initials:', blockX + 4, currentY + 13);
+        doc.text('Infraction:', blockX + halfW + 4, currentY + 13);
+
+        // Row 3
+        currentY += rowH2;
+        doc.rect(blockX, currentY, blockW, rowH3);
+        doc.text('Description:', blockX + 4, currentY + 13);
+      };
+
+      const blockH = (subH - 20) / 3; // 20 is header height
+      let blockY = subTop + 20;
+
+      drawJudgeBlock(blockY, blockH, 'Deck List Checked?');
+      blockY += blockH;
+      drawJudgeBlock(blockY, blockH, 'Deck Check Round:');
+      blockY += blockH;
+      drawJudgeBlock(blockY, blockH, 'Deck Check Round:');
+      
+
+      return doc;
+    } catch (err) {
+      console.error('Error generating PDF', err);
+      return null;
+    }
+  };
+
+
+  const handleDownloadPdf = async () => {
+    const deckState = deckManagerRef.current.getDeckState();
+    const deckName = deckState.name && deckState.name.trim() ? deckState.name.trim() : 'My Deck';
+    const genesysPoints = deckManagerRef.current.getGenesysPoints();
+    const doc = await buildDecklistPdfDoc(deckState, genesysPoints);
+    if (!doc) {
+      showMessage('PDF generator not loaded. Please try again in a moment.', 'error');
+      return;
+    }
+    doc.save(`${deckName || 'deck'}.pdf`);
+  };
+
   const syncDeckName = (deckState: DeckState) => {
     const input = deckNameInputRef.current;
     if (!input) return;
@@ -220,15 +604,18 @@ const Home: React.FC = () => {
     const newDeckBtn = document.getElementById('new-deck');
     const importDeckBtn = document.getElementById('import-deck');
     const exportDeckBtn = document.getElementById('export-deck');
+    const downloadPdfBtn = document.getElementById('download-pdf');
 
     newDeckBtn?.addEventListener('click', handleNewDeck);
     importDeckBtn?.addEventListener('click', handleImportDeck);
     exportDeckBtn?.addEventListener('click', handleExportDeck);
+    downloadPdfBtn?.addEventListener('click', handleDownloadPdf);
 
     return () => {
       newDeckBtn?.removeEventListener('click', handleNewDeck);
       importDeckBtn?.removeEventListener('click', handleImportDeck);
       exportDeckBtn?.removeEventListener('click', handleExportDeck);
+      downloadPdfBtn?.removeEventListener('click', handleDownloadPdf);
     };
   }, []); // Empty dependency array means this effect runs once on mount
 
@@ -251,6 +638,7 @@ const Home: React.FC = () => {
             <button id="new-deck" className="toolbar-btn" data-icon="plus">New deck</button>
             <button id="import-deck" className="toolbar-btn" data-icon="upload">Import</button>
             <button id="export-deck" className="toolbar-btn" data-icon="download">Export</button>
+            <button id="download-pdf" className="toolbar-btn" data-icon="save">Download PDF</button>
           </div>
         </div>
       </header>

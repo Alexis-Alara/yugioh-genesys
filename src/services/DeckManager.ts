@@ -197,6 +197,10 @@ export class DeckManager {
     this.notifyListeners();
   }
 
+  public getGenesysPoints(): number {
+    return this.calculateGenesysPoints();
+  }
+
   private calculateGenesysPoints(): number {
     let totalPoints = 0;
 

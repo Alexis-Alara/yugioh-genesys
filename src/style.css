@@ -29,6 +29,70 @@
   font-weight: 400;
 }
 
+/* PDF Preview Modal */
+.pdf-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 4000;
+}
+
+.pdf-preview-modal {
+  width: min(1024px, 90vw);
+  height: min(720px, 90vh);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: rgba(16, 22, 36, 0.95);
+  border: 1px solid rgba(74, 214, 255, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 26px 52px rgba(5, 7, 13, 0.65);
+  overflow: hidden;
+}
+
+.pdf-preview-header {
+  padding: 12px 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(74, 214, 255, 0.25);
+}
+
+.pdf-preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #0b0f1a;
+}
+
+.pdf-preview-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(74, 214, 255, 0.25);
+}
+
+.pdf-preview-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(74, 214, 255, 0.35);
+  background: linear-gradient(135deg, rgba(10, 16, 30, 0.9), rgba(22, 32, 54, 0.75));
+  color: var(--color-text);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.pdf-preview-btn:hover {
+  border-color: rgba(168, 85, 247, 0.55);
+}
+
+.pdf-preview-btn--ghost {
+  border-color: rgba(148, 163, 208, 0.32);
+  background: rgba(10, 12, 24, 0.78);
+}
+
 * {
   margin: 0;
   padding: 0;
