@@ -256,6 +256,13 @@ export class CardSearchUI {
         >
           <span class="material-symbols-outlined">add</span>
         </button>
+        <button
+          class="search-card-add-side add-side-btn-compact"
+          data-card-id="${card.id}"
+          title="Agregar ${this.escapeAttribute(card.name)} al Side Deck"
+        >
+          + side
+        </button>
       </div>
     `;
   }
@@ -264,24 +271,45 @@ export class CardSearchUI {
     this.resultsContainer.addEventListener('click', async (event) => {
       const target = event.target as HTMLElement;
 
-      const button = target.closest('.add-card-btn-compact') as HTMLElement | null;
-      if (!button) {
+      // Add to Main/Auto deck
+      const addMainBtn = target.closest('.add-card-btn-compact') as HTMLElement | null;
+      if (addMainBtn) {
+        const cardId = parseInt(addMainBtn.getAttribute('data-card-id') || '0', 10);
+        if (cardId) {
+          try {
+            const { YugiohApiService } = await import('../services/YugiohApiService');
+            const card = await YugiohApiService.getCardById(cardId);
+            if (card) {
+              this.onCardSelect(card);
+            }
+          } catch (error) {
+            console.error('Error adding card to deck:', error);
+          }
+        }
         return;
       }
 
-      const cardId = parseInt(button.getAttribute('data-card-id') || '0', 10);
-
-      if (cardId) {
-        try {
-          const { YugiohApiService } = await import('../services/YugiohApiService');
-          const card = await YugiohApiService.getCardById(cardId);
-
-          if (card) {
-            this.onCardSelect(card);
+      // Add directly to Side Deck
+      const addSideBtn = target.closest('.add-side-btn-compact') as HTMLElement | null;
+      if (addSideBtn) {
+        const cardId = parseInt(addSideBtn.getAttribute('data-card-id') || '0', 10);
+        if (cardId) {
+          try {
+            const [{ DeckManager }, { DeckType }, { YugiohApiService }] = await Promise.all([
+              import('../services/DeckManager'),
+              import('../types/Card'),
+              import('../services/YugiohApiService')
+            ]);
+            const deckManager = DeckManager.getInstance();
+            const card = await YugiohApiService.getCardById(cardId);
+            if (card) {
+              deckManager.addCard(card, DeckType.SIDE);
+            }
+          } catch (error) {
+            console.error('Error adding card to Side Deck:', error);
           }
-        } catch (error) {
-          console.error('Error adding card to deck:', error);
         }
+        return;
       }
     });
   }

@@ -690,6 +690,39 @@ body {
   background: rgba(74, 214, 255, 0.2);
 }
 
+/* New: Add-to-Side button in search cards */
+.search-card-add-side {
+  position: absolute;
+  right: 60px; /* sit next to the main add button */
+  bottom: 14px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(52, 234, 185, 0.45); /* success tone */
+  background: rgba(20, 40, 36, 0.82);
+  color: var(--color-success);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.search-card-add-side:hover {
+  border-color: rgba(52, 234, 185, 0.75);
+  background: rgba(52, 234, 185, 0.18);
+  transform: translateY(-1px);
+}
+
+.search-card-add-side:active {
+  transform: translateY(0);
+}
+
 .search-feedback {
   display: grid;
   place-items: center;
