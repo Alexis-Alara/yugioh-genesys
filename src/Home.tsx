@@ -320,6 +320,21 @@ const Home: React.FC = () => {
       const totalSpellPoints = getTotalPoints(mainSpells);
       const totalTrapPoints = getTotalPoints(mainTraps);
 
+      const drawCardName = (doc: any, name: string, x: number, y: number, maxWidth: number) => {
+        const defaultFontSize = 7;
+        doc.setFontSize(defaultFontSize);
+
+        let textWidth = doc.getTextWidth(name);
+
+        if (textWidth > maxWidth) {
+          const newSize = (maxWidth / textWidth) * defaultFontSize;
+          doc.setFontSize(newSize);
+        }
+
+        doc.text(name, x, y);
+        doc.setFontSize(defaultFontSize); // Reset font size
+      };
+
       const drawDeckColumn = (x: number, title: string, rows: Row[], totalQty: number, totalPts: number) => {
         // Header bar
         colHeader(x, mainTop, threeColW, title.toUpperCase());
@@ -343,7 +358,7 @@ const Home: React.FC = () => {
             doc.setFont('helvetica','normal');
             doc.setFontSize(7);
             doc.text(String(row.qty), x + qtyColW / 2, ry + 12, { align: 'center' });
-            doc.text(row.name, x + qtyColW + 4, ry + 12);
+            drawCardName(doc, row.name, x + qtyColW + 4, ry + 12, threeColW - qtyColW - ptsColW - 8);
             doc.text(String(totalRowPoints), x + threeColW - ptsColW / 2, ry + 12, { align: 'center' });
           }
           ry += rowH;
@@ -412,7 +427,7 @@ const Home: React.FC = () => {
             doc.setFont('helvetica','normal');
             doc.setFontSize(7);
             doc.text(String(row.qty), x + qtyColW / 2, ry + 12, { align: 'center' });
-            doc.text(row.name, x + qtyColW + 4, ry + 12);
+            drawCardName(doc, row.name, x + qtyColW + 4, ry + 12, threeColW - qtyColW - ptsColW - 8);
             doc.text(String(totalRowPoints), x + threeColW - ptsColW / 2, ry + 12, { align: 'center' });
           }
           ry += rowH;
