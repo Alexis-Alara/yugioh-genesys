@@ -90,6 +90,7 @@ export const EXTRA_DECK_TYPES = [
   'Link Monster',
   'Pendulum Effect Fusion Monster',
   'Synchro Pendulum Effect Monster',
+  'Synchro Tuner Monster',
   'XYZ Pendulum Effect Monster'
 ];
 
