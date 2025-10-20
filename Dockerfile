@@ -21,37 +21,17 @@ FROM nginx:alpine
 
 # Configuración de Nginx optimizada con redirección canónica
 RUN echo '\
-# Redirigir HTTP www -> HTTPS sin www\n\
+# Servidor principal HTTP\n\
 server {\n\
     listen 80;\n\
-    server_name www.yugiohgenesys.com.mx;\n\
-    return 301 https://yugiohgenesys.com.mx$request_uri;\n\
-}\n\
+    server_name yugiohgenesys.com.mx www.yugiohgenesys.com.mx;\n\
 \n\
-# Redirigir HTTP no-www -> HTTPS\n\
-server {\n\
-    listen 80;\n\
-    server_name yugiohgenesys.com.mx;\n\
-    return 301 https://yugiohgenesys.com.mx$request_uri;\n\
-}\n\
+    # Redirigir www -> no-www\n\
+    if ($host = "www.yugiohgenesys.com.mx") {\n\
+        return 301 https://yugiohgenesys.com.mx$request_uri;\n\
+    }\n\
 \n\
-# Redirigir HTTPS www -> sin www\n\
-server {\n\
-    listen 443 ssl;\n\
-    server_name www.yugiohgenesys.com.mx;\n\
-    ssl_certificate /etc/ssl/certs/fullchain.pem;\n\
-    ssl_certificate_key /etc/ssl/private/privkey.pem;\n\
-    return 301 https://yugiohgenesys.com.mx$request_uri;\n\
-}\n\
-\n\
-# Servidor principal HTTPS sin www\n\
-server {\n\
-    listen 443 ssl;\n\
-    server_name yugiohgenesys.com.mx;\n\
-    ssl_certificate /etc/ssl/certs/fullchain.pem;\n\
-    ssl_certificate_key /etc/ssl/private/privkey.pem;\n\
-\n\
-    # Security headers\n\
+    # Security headers (opcional, se aplican sobre HTTP)\n\
     add_header X-Frame-Options "SAMEORIGIN" always;\n\
     add_header X-Content-Type-Options "nosniff" always;\n\
     add_header X-XSS-Protection "1; mode=block" always;\n\
@@ -88,6 +68,7 @@ server {\n\
         add_header Cache-Control "no-cache";\n\
     }\n\
 }' > /etc/nginx/conf.d/default.conf
+
 
 
 # Copiar archivos de la build
