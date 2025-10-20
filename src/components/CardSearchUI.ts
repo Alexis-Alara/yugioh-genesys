@@ -15,6 +15,9 @@ export class CardSearchUI {
   private clearFiltersBtn: HTMLButtonElement | null = null;
   private readonly handleToggleFiltersClick = () => this.toggleFilters();
   private readonly handleClearFiltersClick = () => this.clearAllFilters();
+  private readonly isMobile = window.innerWidth < 768;
+  private readonly maxResults = this.isMobile ? 20 : 40;
+  private observerInstance: IntersectionObserver | null = null;
 
   constructor(
     searchInputId: string,
@@ -53,9 +56,10 @@ export class CardSearchUI {
 
     this.initializeFiltersUI();
 
-    this.debouncedSearch = this.createDebounce(() => this.handleSearch(), 300);
+    this.debouncedSearch = this.createDebounce(() => this.handleSearch(), this.isMobile ? 500 : 300);
 
     this.initializeEventListeners();
+    this.initializeLazyLoading();
   }
 
   private initializeEventListeners(): void {
@@ -201,23 +205,36 @@ export class CardSearchUI {
       return;
     }
     const filteredCards = cards.filter(card => 
-        !card.type.includes('Link') && !card.type.includes('Pendulum')
+        !card.type.includes('Link') && !card.type.includes('Pendulum') && !card.type.includes('Token')
       );
 
-    const cardsHtml = filteredCards.map((card) => this.createCardElement(card)).join('');
+    // Limitar resultados en móviles
+    const displayCards = this.isMobile ? filteredCards.slice(0, this.maxResults) : filteredCards;
+
+    const cardsHtml = displayCards.map((card) => this.createCardElement(card)).join('');
 
     this.resultsContainer.innerHTML = `
       <div class="results-meta">
-        <span class="results-count">${filteredCards.length} cards found</span>
+        <span class="results-count">${filteredCards.length} cards found${this.isMobile && filteredCards.length > this.maxResults ? ` (showing ${this.maxResults})` : ''}</span>
       </div>
       <div class="cards-grid">
         ${cardsHtml}
       </div>
     `;
+
+    // Activar lazy loading para las imágenes
+    if (this.observerInstance) {
+      const images = this.resultsContainer.querySelectorAll('img[data-src]');
+      images.forEach((img) => this.observerInstance?.observe(img));
+    }
   }
 
   private createCardElement(card: Card): string {
     const fullImageUrl = card.card_images?.[0]?.id?.toString() || '';
+    // Usar imagen small en móviles para mejor performance
+    const imageSize = this.isMobile ? 'small' : 'normal';
+    const imageUrl = `https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}${this.isMobile ? '?size=small' : ''}`;
+    
     let atk = '';
     let def = '';
     if (card) {
@@ -238,7 +255,7 @@ export class CardSearchUI {
     return `
       <div class="search-card card-hover-target" data-card-id="${card.id}" ${previewAttrs}>
         <div class="search-card-thumb">
-          <img src="https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
+          <img data-src="${imageUrl}" alt="${this.escapeAttribute(card.name)}" loading="lazy" />
           ${level ? `<span class="search-card-level">${this.escapeText(level)}</span>` : ''}
           ${attribute ? `<span class="search-card-attribute">${this.escapeText(attribute)}</span>` : ''}
         </div>
@@ -322,10 +339,11 @@ export class CardSearchUI {
 
     try {
       const { YugiohApiService } = await import('../services/YugiohApiService');
-      const cards = await YugiohApiService.getRandomCards(40);
+      const limit = this.isMobile ? 20 : 40;
+      const cards = await YugiohApiService.getRandomCards(limit);
       
       const filteredCards = cards.filter(card => 
-        !card.type.includes('Link') && !card.type.includes('Pendulum')
+        !card.type.includes('Link') && !card.type.includes('Pendulum') && !card.type.includes('Token')
       );
       this.displayResults(filteredCards);
     } catch (error) {
@@ -443,5 +461,21 @@ export class CardSearchUI {
 
   private escapeText(value: string): string {
     return this.escapeAttribute(value);
+  }
+
+  private initializeLazyLoading(): void {
+    this.observerInstance = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          const src = img.getAttribute('data-src');
+          if (src) {
+            img.src = src;
+            img.removeAttribute('data-src');
+            this.observerInstance?.unobserve(img);
+          }
+        }
+      });
+    });
   }
 }

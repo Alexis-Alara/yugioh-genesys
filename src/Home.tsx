@@ -534,6 +534,31 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
+    // Agregar canonical URL
+    const canonicalUrl = 'https://yugiohgenesys.com.mx/';
+    let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+    
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.rel = 'canonical';
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.href = canonicalUrl;
+
+    // Preconnect a dominios externos
+    const preconnectLinks = [
+      'https://yugiohgenesys.com.mx',
+      'https://fonts.googleapis.com',
+      'https://cdn.jsdelivr.net'
+    ];
+
+    preconnectLinks.forEach((href) => {
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = href;
+      document.head.appendChild(link);
+    });
+
     // Initialize CardHoverPreview
     new CardHoverPreview();
 
