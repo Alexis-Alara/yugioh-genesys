@@ -232,7 +232,7 @@ export class CardSearchUI {
   private createCardElement(card: Card): string {
     const fullImageUrl = card.card_images?.[0]?.id?.toString() || '';
     // Usar imagen small en móviles para mejor performance
-    const imageSize = this.isMobile ? 'small' : 'normal';
+    
     const imageUrl = `https://yugiohgenesys.com.mx/api/cards/${fullImageUrl}${this.isMobile ? '?size=small' : ''}`;
     
     let atk = '';
