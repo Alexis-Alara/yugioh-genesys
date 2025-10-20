@@ -748,7 +748,6 @@ const Home: React.FC = () => {
                   <option value="Fusion Monster">Fusion Monster</option>
                   <option value="Synchro Monster">Synchro Monster</option>
                   <option value="XYZ Monster">XYZ Monster</option>
-                  <option value="Link Monster">Link Monster</option>
                   <option value="Ritual Monster">Ritual Monster</option>
                 </select>
               </label>

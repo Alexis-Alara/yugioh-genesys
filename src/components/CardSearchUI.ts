@@ -200,12 +200,15 @@ export class CardSearchUI {
       `;
       return;
     }
+    const filteredCards = cards.filter(card => 
+        !card.type.includes('Link') && !card.type.includes('Pendulum')
+      );
 
-    const cardsHtml = cards.map((card) => this.createCardElement(card)).join('');
+    const cardsHtml = filteredCards.map((card) => this.createCardElement(card)).join('');
 
     this.resultsContainer.innerHTML = `
       <div class="results-meta">
-        <span class="results-count">${cards.length} cards found</span>
+        <span class="results-count">${filteredCards.length} cards found</span>
       </div>
       <div class="cards-grid">
         ${cardsHtml}
@@ -320,7 +323,11 @@ export class CardSearchUI {
     try {
       const { YugiohApiService } = await import('../services/YugiohApiService');
       const cards = await YugiohApiService.getRandomCards(40);
-      this.displayResults(cards);
+      
+      const filteredCards = cards.filter(card => 
+        !card.type.includes('Link') && !card.type.includes('Pendulum')
+      );
+      this.displayResults(filteredCards);
     } catch (error) {
       console.error('Error loading random cards:', error);
       this.showError('Unable to load random cards right now.');
