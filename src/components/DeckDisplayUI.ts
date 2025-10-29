@@ -1,6 +1,7 @@
 import type { DeckState, DeckCard, DeckTypeValue } from '../types/Card';
 import { DeckType } from '../types/Card';
 import { GenesysService } from '../services/GenesysService';
+import { formatCurrency, getCardBestPrice, getCardPriceInfo } from '../utils/cardPrice';
 
 //const AVATAR_PLACEHOLDER = 'https://www.google.com/url?sa=i&url=https%3A%2F%2Faminoapps.com%2Fc%2Fyugioh-espanol%2Fpage%2Fblog%2Fcartas-caracteristicas-de-yu-gi-oh%2F1YvK_oxh6u0ozo6nndaV2aMdbQ8eBzkG5V&psig=AOvVaw0JSkRLYInOdvYtnc1Id34T&ust=1758764242524000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCNjou8Oh8I8DFQAAAAAdAAAAABAE';
 
@@ -205,6 +206,15 @@ export class DeckDisplayUI {
     if (deckTotalElement) {
       deckTotalElement.textContent = this.formatCardTotal(total);
     }
+
+    const deckValueElement = document.getElementById('deck-value');
+    if (deckValueElement) {
+      const deckValue =
+        typeof deckState.deckValue === 'number'
+          ? deckState.deckValue
+          : this.computeDeckValue(deckState);
+      deckValueElement.textContent = formatCurrency(deckValue);
+    }
   }
 
   private formatCardTotal(total: number): string {
@@ -237,6 +247,7 @@ export class DeckDisplayUI {
 
   private buildPreviewDataset(card: DeckCard['card'], imageUrl: number): string {
     const sanitizedDesc = this.escapeAttribute(this.normalizeWhitespace(card.desc));
+    const priceInfo = getCardPriceInfo(card);
     const attrs = [
       `data-card-name="${this.escapeAttribute(card.name)}"`,
       `data-card-type="${this.escapeAttribute(card.type)}"`,
@@ -250,6 +261,12 @@ export class DeckDisplayUI {
       `data-card-desc="${sanitizedDesc}"`,
       `data-card-image="https://yugiohgenesys.com.mx/api/cards/${imageUrl}"`
     ];
+
+    if (priceInfo) {
+      attrs.push(`data-card-price-best="${priceInfo.best.value.toFixed(2)}"`);
+      attrs.push(`data-card-price-best-label="${this.escapeAttribute(priceInfo.best.label)}"`);
+      attrs.push(`data-card-price-sources="${this.escapeAttribute(JSON.stringify(priceInfo.sources))}"`);
+    }
 
     return attrs.join(' ');
   }
@@ -265,5 +282,19 @@ export class DeckDisplayUI {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/'/g, '&#39;');
+  }
+
+  private computeDeckValue(deckState: DeckState): number {
+    const sumDeck = (deckCards: DeckCard[]): number =>
+      deckCards.reduce((total, deckCard) => {
+        const unitPrice = getCardBestPrice(deckCard.card);
+        return total + unitPrice * deckCard.quantity;
+      }, 0);
+
+    return (
+      sumDeck(deckState.mainDeck) +
+      sumDeck(deckState.extraDeck) +
+      sumDeck(deckState.sideDeck)
+    );
   }
 }

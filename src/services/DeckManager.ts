@@ -1,6 +1,7 @@
 import type { Card, DeckCard, DeckState, DeckTypeValue } from '../types/Card';
 import { DeckType, EXTRA_DECK_TYPES } from '../types/Card';
 import { GenesysService } from './GenesysService';
+import { getCardBestPrice } from '../utils/cardPrice';
 
 export class DeckManager {
   private static instance: DeckManager;
@@ -42,7 +43,8 @@ export class DeckManager {
   private notifyListeners(): void {
     const deckWithPoints = {
       ...this.deck,
-      genesysPoints: this.calculateGenesysPoints()
+      genesysPoints: this.calculateGenesysPoints(),
+      deckValue: this.calculateDeckValue()
     };
     this.listeners.forEach((callback) => callback(deckWithPoints));
   }
@@ -50,7 +52,8 @@ export class DeckManager {
   getDeckState(): DeckState {
     return {
       ...this.deck,
-      genesysPoints: this.calculateGenesysPoints()
+      genesysPoints: this.calculateGenesysPoints(),
+      deckValue: this.calculateDeckValue()
     };
   }
 
@@ -201,6 +204,10 @@ export class DeckManager {
     return this.calculateGenesysPoints();
   }
 
+  public getDeckValueEstimate(): number {
+    return this.calculateDeckValue();
+  }
+
   private calculateGenesysPoints(): number {
     let totalPoints = 0;
 
@@ -216,6 +223,19 @@ export class DeckManager {
     });
 
     return totalPoints;
+  }
+
+  private calculateDeckValue(): number {
+    const allDecks = [
+      ...this.deck.mainDeck,
+      ...this.deck.extraDeck,
+      ...this.deck.sideDeck
+    ];
+
+    return allDecks.reduce((total, deckCard) => {
+      const unitPrice = getCardBestPrice(deckCard.card);
+      return total + unitPrice * deckCard.quantity;
+    }, 0);
   }
 
   getDeckStats(): {

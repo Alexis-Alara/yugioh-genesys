@@ -1039,9 +1039,17 @@ const Home: React.FC = () => {
               <h2>Deck builder</h2>
               <span className="deck-total" id="deck-total">0 cards</span>
             </div>
-            <div className="genesys-pill" title="Total Genesys score">
-              <span className="pill-label">Genesys</span>
-              <span className="pill-value" id="genesys-points">0</span>
+            
+            <div className="panel-metrics">
+               <div className="value-pill" title="Estimated deck cost">
+                <span className="pill-label">Deck value: </span>
+                <span className="pill-value" id="deck-value">$0.00</span>
+              </div>
+              <div className="genesys-pill" title="Total Genesys score">
+                <span className="pill-label">Genesys</span>
+                <span className="pill-value" id="genesys-points">0</span>
+              </div>
+             
             </div>
           </div>
 

@@ -1,3 +1,10 @@
+import { formatCurrency } from '../utils/cardPrice';
+
+interface PreviewPriceSource {
+  label: string;
+  value: number;
+}
+
 interface PreviewData {
   name: string;
   image: string;
@@ -7,6 +14,11 @@ interface PreviewData {
   levelText?: string;
   statsText?: { atk?: string; def?: string };
   desc?: string;
+  price?: {
+    bestLabel: string;
+    bestValue: number;
+    sources: PreviewPriceSource[];
+  };
 }
 
 export class CardHoverPreview {
@@ -22,6 +34,10 @@ export class CardHoverPreview {
   private atkEl: HTMLElement;
   private defEl: HTMLElement;
   private descEl: HTMLElement;
+  private priceContainer!: HTMLElement;
+  private priceBestLabelEl!: HTMLElement;
+  private priceValueEl!: HTMLElement;
+  private priceListEl!: HTMLUListElement;
   private closeBtn: HTMLButtonElement;
   private isHoverMode: boolean;
   private descriptionLimit: number;
@@ -40,6 +56,10 @@ export class CardHoverPreview {
     this.dividerEl = this.overlay.querySelector('.preview-stats .divider') as HTMLElement;
     this.atkEl = this.overlay.querySelector('.stat-atk') as HTMLElement;
     this.defEl = this.overlay.querySelector('.stat-def') as HTMLElement;
+    this.priceContainer = this.overlay.querySelector('.preview-price') as HTMLElement;
+    this.priceBestLabelEl = this.overlay.querySelector('.preview-price-label') as HTMLElement;
+    this.priceValueEl = this.overlay.querySelector('.preview-price-value') as HTMLElement;
+    this.priceListEl = this.overlay.querySelector('.preview-price-list') as HTMLUListElement;
     this.descEl = this.overlay.querySelector('.preview-desc') as HTMLElement;
     this.closeBtn = this.overlay.querySelector('.preview-close') as HTMLButtonElement;
 
@@ -83,6 +103,13 @@ export class CardHoverPreview {
             <span class="preview-stat stat-atk"></span>
             <span class="divider"></span>
             <span class="preview-stat stat-def"></span>
+          </div>
+          <div class="preview-price" hidden>
+            <div class="preview-price-header">
+              <span class="preview-price-label"></span>
+              <span class="preview-price-value"></span>
+            </div>
+            <ul class="preview-price-list"></ul>
           </div>
           <p class="preview-desc"></p>
         </div>
@@ -171,6 +198,11 @@ export class CardHoverPreview {
     this.atkEl.hidden = true;
     this.defEl.hidden = true;
     this.dividerEl.hidden = true;
+    this.priceContainer.hidden = true;
+    this.priceBestLabelEl.textContent = '';
+    this.priceValueEl.textContent = '';
+    this.priceListEl.innerHTML = '';
+
 
     // Limpiar imagen
     this.imageEl.src = '';
@@ -216,11 +248,41 @@ export class CardHoverPreview {
       cardAtk,
       cardDef,
       cardDesc,
-      cardImage
+      cardImage,
+      cardPriceBest,
+      cardPriceBestLabel,
+      cardPriceSources
     } = target.dataset as Record<string, string | undefined>;
 
     const levelText = this.buildLevelText(cardLevel, cardLink, cardScale, cardType);
     const stats = this.buildStats(cardAtk, cardDef);
+    let price: PreviewData['price'];
+
+    if (cardPriceSources) {
+      try {
+        const parsedSources = JSON.parse(cardPriceSources) as Array<{ label: string; value: number }>;
+        const normalizedSources = parsedSources
+          .filter((source) => typeof source.value === 'number' && Number.isFinite(source.value))
+          .map((source) => ({
+            label: source.label,
+            value: source.value
+          }));
+
+        if (normalizedSources.length > 0) {
+          const bestValue = cardPriceBest ? Number.parseFloat(cardPriceBest) : normalizedSources[0].value;
+          const bestLabel = cardPriceBestLabel || normalizedSources[0].label;
+          const safeBestValue = Number.isFinite(bestValue) ? bestValue : normalizedSources[0].value;
+
+          price = {
+            bestLabel,
+            bestValue: safeBestValue,
+            sources: normalizedSources
+          };
+        }
+      } catch (error) {
+        console.error('Error parsing card price data', error);
+      }
+    }
 
     return {
       name: cardName || 'Carta',
@@ -230,7 +292,8 @@ export class CardHoverPreview {
       race: cardRace,
       levelText,
       statsText: stats,
-      desc: cardDesc ? cardDesc : ''
+      desc: cardDesc ? cardDesc : '',
+      price
     };
   }
 
@@ -298,6 +361,37 @@ export class CardHoverPreview {
       this.overlay.classList.remove('has-stats');
     }
 
+    if (data.price && data.price.sources.length > 0) {
+      this.priceContainer.hidden = false;
+      const bestLabelText = data.price.bestLabel ? `Best · ${data.price.bestLabel}` : 'Best price';
+      this.priceBestLabelEl.textContent = bestLabelText;
+      this.priceValueEl.textContent = formatCurrency(data.price.bestValue);
+      this.priceListEl.innerHTML = '';
+
+      data.price.sources.forEach((source) => {
+        const item = document.createElement('li');
+        const isBest =
+          source.label === data.price!.bestLabel && Math.abs(source.value - data.price!.bestValue) < 0.001;
+        item.className = `preview-price-item${isBest ? ' is-best' : ''}`;
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'preview-price-item-label';
+        labelSpan.textContent = source.label;
+
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'preview-price-item-value';
+        valueSpan.textContent = formatCurrency(source.value);
+
+        item.append(labelSpan, valueSpan);
+        this.priceListEl.appendChild(item);
+      });
+    } else {
+      this.priceContainer.hidden = true;
+      this.priceBestLabelEl.textContent = '';
+      this.priceValueEl.textContent = '';
+      this.priceListEl.innerHTML = '';
+    }
+
     const normalizedDesc = data.desc ? this.truncate(data.desc.replace(/\s+/g, ' ').trim()) : '';
     this.descEl.textContent = normalizedDesc;
   }
@@ -325,3 +419,4 @@ export class CardHoverPreview {
     return `${value.slice(0, safeLimit - 3)}...`;
   }
 }
+

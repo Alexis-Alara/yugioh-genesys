@@ -68,6 +68,7 @@ export interface DeckState {
   sideDeck: DeckCard[];
   name?: string;
   genesysPoints?: number;
+  deckValue?: number;
 }
 
 // Search filters
