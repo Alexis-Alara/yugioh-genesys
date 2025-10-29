@@ -105,6 +105,8 @@ const Home: React.FC = () => {
   const [atkValue, setAtkValue] = useState<string>('');
   const [defValue, setDefValue] = useState<string>('');
   const [searchTermActive, setSearchTermActive] = useState<boolean>(false);
+  const [isMobileLayout, setIsMobileLayout] = useState<boolean>(false);
+  const [activeMobileSection, setActiveMobileSection] = useState<'deck' | 'search'>('deck');
 
   const hasActiveFilters =
     Boolean(selectedFrame) ||
@@ -158,6 +160,30 @@ const Home: React.FC = () => {
     const timeoutId = window.setTimeout(load, 700);
     return () => window.clearTimeout(timeoutId);
   };
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 900px)');
+
+    const updateLayout = (event?: MediaQueryListEvent) => {
+      setIsMobileLayout(event ? event.matches : mediaQuery.matches);
+    };
+
+    updateLayout();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateLayout);
+      return () => mediaQuery.removeEventListener('change', updateLayout);
+    }
+
+    mediaQuery.addListener(updateLayout);
+    return () => mediaQuery.removeListener(updateLayout);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileLayout) {
+      setActiveMobileSection('deck');
+    }
+  }, [isMobileLayout]);
 
   const handleFrameChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -976,8 +1002,38 @@ const Home: React.FC = () => {
         </div>
       </header>
 
-      <main className="main-layout">
-        <section className="panel deck-panel">
+      {isMobileLayout && (
+        <div className="mobile-section-toggle" role="tablist" aria-label="Deck builder view">
+          <button
+            type="button"
+            className={`mobile-section-btn${activeMobileSection === 'deck' ? ' is-active' : ''}`}
+            role="tab"
+            aria-selected={activeMobileSection === 'deck'}
+            aria-controls="deck-section"
+            onClick={() => setActiveMobileSection('deck')}
+          >
+            Deck
+          </button>
+          <button
+            type="button"
+            className={`mobile-section-btn${activeMobileSection === 'search' ? ' is-active' : ''}`}
+            role="tab"
+            aria-selected={activeMobileSection === 'search'}
+            aria-controls="search-section"
+            onClick={() => setActiveMobileSection('search')}
+          >
+            Search
+          </button>
+        </div>
+      )}
+
+      <main className={`main-layout${isMobileLayout ? ' is-mobile' : ''}`}>
+        <section
+          id="deck-section"
+          className={`panel deck-panel${isMobileLayout && activeMobileSection !== 'deck' ? ' is-hidden-mobile' : ''}`}
+          hidden={isMobileLayout && activeMobileSection !== 'deck'}
+          aria-hidden={isMobileLayout && activeMobileSection !== 'deck'}
+        >
           <div className="panel-header">
             <div className="panel-title">
               <h2>Deck builder</h2>
@@ -1031,7 +1087,12 @@ const Home: React.FC = () => {
           </div>
         </section>
 
-        <aside className="panel search-panel">
+        <aside
+          id="search-section"
+          className={`panel search-panel${isMobileLayout && activeMobileSection !== 'search' ? ' is-hidden-mobile' : ''}`}
+          hidden={isMobileLayout && activeMobileSection !== 'search'}
+          aria-hidden={isMobileLayout && activeMobileSection !== 'search'}
+        >
           <div className="panel-header">
             <div className="panel-title">
               <h2>Card database</h2>

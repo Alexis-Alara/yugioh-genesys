@@ -1687,7 +1687,9 @@ NUEVO DISEÑO v2: AVATAR DE CARTA CON FONDO INMERSIVO
 
 .search-card-detail {
   margin-top: 12px;
-  align-self: flex-start;
+  align-self: stretch;
+  width: 100%;
+  justify-content: center;
   grid-column: 1 / -1;
 }
 
@@ -1772,3 +1774,66 @@ NUEVO DISEÑO v2: AVATAR DE CARTA CON FONDO INMERSIVO
   }
 }
 
+
+.is-hidden-mobile {
+  display: none !important;
+}
+
+.mobile-section-toggle {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-section-toggle {
+    display: flex;
+    gap: 10px;
+    padding: 0 4px;
+  }
+
+  .mobile-section-btn {
+    flex: 1 1 0;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(74, 214, 255, 0.28);
+    background: rgba(7, 11, 20, 0.82);
+    color: var(--color-text);
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+
+  .mobile-section-btn.is-active {
+    border-color: rgba(168, 85, 247, 0.65);
+    background: linear-gradient(135deg, rgba(74, 214, 255, 0.22), rgba(168, 85, 247, 0.28));
+    color: var(--color-primary);
+  }
+
+  .mobile-section-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .main-layout.is-mobile {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .deck-panel,
+  .search-panel {
+    padding: 20px 18px;
+  }
+
+  .deck-insights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .deck-rows {
+    gap: 18px;
+  }
+
+  .search-results {
+    max-height: none;
+  }
+}
