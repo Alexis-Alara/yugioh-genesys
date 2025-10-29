@@ -17,8 +17,10 @@ export class CardSearchUI {
   private clearFiltersBtn: HTMLButtonElement | null = null;
   private readonly handleToggleFiltersClick = () => this.toggleFilters();
   private readonly handleClearFiltersClick = () => this.clearAllFilters();
-  private readonly isMobile = window.innerWidth < 768;
-  private readonly maxResults = this.isMobile ? 20 : 40;
+  private readonly isMobile = window.matchMedia('(max-width: 768px)').matches;
+  private readonly randomCardBatchSize: number;
+  private readonly maxResults: number;
+  private readonly searchDebounceMs: number;
   private observerInstance: IntersectionObserver | null = null;
 
   constructor(
@@ -41,6 +43,25 @@ export class CardSearchUI {
     this.levelSelect = document.getElementById(levelSelectId) as HTMLSelectElement;
     this.resultsContainer = document.getElementById(resultsContainerId) as HTMLElement;
     this.onCardSelect = onCardSelect;
+
+    const network = (navigator as unknown as { connection?: any }).connection;
+    const saveDataEnabled = Boolean(network?.saveData);
+    const slowConnection =
+      saveDataEnabled ||
+      network?.effectiveType === 'slow-2g' ||
+      network?.effectiveType === '2g' ||
+      (typeof network?.downlink === 'number' && network.downlink > 0 && network.downlink < 1.2);
+
+    if (saveDataEnabled) {
+      this.randomCardBatchSize = 6;
+    } else if (this.isMobile) {
+      this.randomCardBatchSize = slowConnection ? 8 : 12;
+    } else {
+      this.randomCardBatchSize = slowConnection ? 16 : 28;
+    }
+
+    this.maxResults = Math.max(this.randomCardBatchSize, this.isMobile ? 18 : 42);
+    this.searchDebounceMs = this.isMobile ? 550 : 300;
 
     // Initialize race filter (optional)
     if (raceSelectId) {
@@ -68,7 +89,10 @@ export class CardSearchUI {
 
     this.initializeFiltersUI();
 
-    this.debouncedSearch = this.createDebounce(() => this.handleSearch(), this.isMobile ? 500 : 300);
+    this.debouncedSearch = this.createDebounce(
+      () => this.handleSearch(),
+      this.searchDebounceMs
+    );
 
     this.initializeEventListeners();
     this.initializeLazyLoading();
@@ -249,13 +273,13 @@ export class CardSearchUI {
       );
 
     // Limitar resultados en móviles
-    const displayCards = this.isMobile ? filteredCards.slice(0, this.maxResults) : filteredCards;
+    const displayCards = filteredCards.slice(0, this.maxResults);
 
     const cardsHtml = displayCards.map((card) => this.createCardElement(card)).join('');
 
     this.resultsContainer.innerHTML = `
       <div class="results-meta">
-        <span class="results-count">${filteredCards.length} cards found${this.isMobile && filteredCards.length > this.maxResults ? ` (showing ${this.maxResults})` : ''}</span>
+        <span class="results-count">${filteredCards.length} cards found${filteredCards.length > this.maxResults ? ` (showing ${this.maxResults})` : ''}</span>
       </div>
       <div class="cards-grid">
         ${cardsHtml}
@@ -379,8 +403,7 @@ export class CardSearchUI {
 
     try {
       const { YugiohApiService } = await import('../services/YugiohApiService');
-      const limit = this.isMobile ? 20 : 40;
-      const cards = await YugiohApiService.getRandomCards(limit);
+      const cards = await YugiohApiService.getRandomCards(this.randomCardBatchSize);
       
       const filteredCards = cards.filter(card => 
         !card.type.includes('Link') && !card.type.includes('Pendulum') && !card.type.includes('Token')

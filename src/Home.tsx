@@ -126,6 +126,39 @@ const Home: React.FC = () => {
     selectElement.dispatchEvent(changeEvent);
   };
 
+  const scheduleInitialRandomCards = () => {
+    const cardSearch = cardSearchUIRef.current;
+    if (!cardSearch) {
+      return undefined;
+    }
+
+    const load = () => {
+      cardSearch.loadRandomCards().catch((error) => {
+        console.error('Error loading initial cards:', error);
+      });
+    };
+
+    const win = window as typeof window & {
+      requestIdleCallback?: (
+        callback: (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void,
+        options?: { timeout?: number }
+      ) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    if (typeof win.requestIdleCallback === 'function') {
+      const handle = win.requestIdleCallback(() => load(), { timeout: 2200 });
+      return () => {
+        if (typeof win.cancelIdleCallback === 'function') {
+          win.cancelIdleCallback(handle);
+        }
+      };
+    }
+
+    const timeoutId = window.setTimeout(load, 700);
+    return () => window.clearTimeout(timeoutId);
+  };
+
   const handleFrameChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     setSelectedFrame(value);
@@ -789,8 +822,14 @@ const Home: React.FC = () => {
       document.head.appendChild(link);
     });
 
-    // Initialize CardHoverPreview
-    new CardHoverPreview();
+    const navWithTouch = navigator as Navigator & { maxTouchPoints?: number };
+    const hasTouchPoints = typeof navWithTouch.maxTouchPoints === 'number' && navWithTouch.maxTouchPoints > 0;
+    const isTouchPrimary =
+      window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || hasTouchPoints;
+
+    if (!isTouchPrimary) {
+      new CardHoverPreview();
+    }
 
     // Initialize CardSearchUI
     cardSearchUIRef.current = new CardSearchUI(
@@ -839,7 +878,7 @@ const Home: React.FC = () => {
 
     // Initialize card search and load initial cards
     cardSearchUIRef.current.initializeCardActions();
-    cardSearchUIRef.current.loadRandomCards();
+    const cancelInitialRandomLoad = scheduleInitialRandomCards();
 
     // Update initial display
     const deckState = deckManagerRef.current.getDeckState();
@@ -868,7 +907,7 @@ const Home: React.FC = () => {
 
     // Clean up function
     return () => {
-      // Add cleanup code here if needed
+      cancelInitialRandomLoad?.();
     };
     }, []); // Empty dependency array means this effect runs once on mount
   
