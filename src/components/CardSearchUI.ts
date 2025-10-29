@@ -1,5 +1,6 @@
 import type { Card, SearchFilters as ApiSearchFilters } from '../types/Card';
 import { GenesysService } from '../services/GenesysService';
+import { formatCurrency, getCardPriceInfo } from '../utils/cardPrice';
 
 export class CardSearchUI {
   private searchInput: HTMLInputElement;
@@ -310,8 +311,12 @@ export class CardSearchUI {
     const attribute = card.attribute ? card.attribute : '';
 
     const points = GenesysService.getCardPoints(card.name);
+    const priceInfo = getCardPriceInfo(card);
     const genesysBadge = points > 0
       ? `<span class="search-card-points" title="Genesys score">${points} pts</span>`
+      : '';
+    const priceBadge = priceInfo
+      ? `<span class="search-card-price">${this.escapeText(formatCurrency(priceInfo.best.value))} · ${this.escapeText(priceInfo.best.label)}</span>`
       : '';
 
     const previewAttrs = this.buildPreviewDataset(card, fullImageUrl);
@@ -331,22 +336,27 @@ export class CardSearchUI {
           <span class="search-card-type">${this.escapeText(card.type)}</span>
           <span class="search-card-race">${this.escapeText(card.race)}</span>
           ${stats ? `<span class="search-card-stats">${this.escapeText(stats)}</span>` : ''}
+          ${priceBadge}
         </div>
-        <button class="card-preview-trigger search-card-detail" type="button">View details</button>
-        <button
-          class="search-card-add add-card-btn-compact"
-          data-card-id="${card.id}"
-          title="Add ${this.escapeAttribute(card.name)}"
-        >
-          <span class="material-symbols-outlined">add</span>
-        </button>
-        <button
-          class="search-card-add-side add-side-btn-compact"
-          data-card-id="${card.id}"
-          title="Agregar ${this.escapeAttribute(card.name)} al Side Deck"
-        >
-          + side
-        </button>
+        <div class="search-card-actions">
+          <div class="search-card-actions-primary">
+            <button
+              class="search-card-add add-card-btn-compact"
+              data-card-id="${card.id}"
+              title="Add ${this.escapeAttribute(card.name)}"
+            >
+              <span class="material-symbols-outlined">add</span>
+            </button>
+            <button
+              class="search-card-add-side add-side-btn-compact"
+              data-card-id="${card.id}"
+              title="Agregar ${this.escapeAttribute(card.name)} al Side Deck"
+            >
+              + side
+            </button>
+          </div>
+          <button class="card-preview-trigger search-card-detail" type="button">View details</button>
+        </div>
       </div>
     `;
   }
@@ -518,6 +528,7 @@ export class CardSearchUI {
 
   private buildPreviewDataset(card: Card, imageUrl: string): string {
     const sanitizedDesc = this.escapeAttribute(this.normalizeWhitespace(card.desc));
+    const priceInfo = getCardPriceInfo(card);
     const attrs = [
       `data-card-name="${this.escapeAttribute(card.name)}"`,
       `data-card-type="${this.escapeAttribute(card.type)}"`,
@@ -531,6 +542,12 @@ export class CardSearchUI {
       `data-card-desc="${sanitizedDesc}"`,
       `data-card-image="https://yugiohgenesys.com.mx/api/cards/${imageUrl}"`,
     ];
+
+    if (priceInfo) {
+      attrs.push(`data-card-price-best="${priceInfo.best.value.toFixed(2)}"`);
+      attrs.push(`data-card-price-best-label="${this.escapeAttribute(priceInfo.best.label)}"`);
+      attrs.push(`data-card-price-sources="${this.escapeAttribute(JSON.stringify(priceInfo.sources))}"`);
+    }
 
     return attrs.join(' ');
   }

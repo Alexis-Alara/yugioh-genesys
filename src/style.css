@@ -689,6 +689,20 @@ body {
   gap: 6px;
 }
 
+.search-card-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.search-card-actions-primary {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+}
+
 .search-card-title {
   display: flex;
   justify-content: space-between;
@@ -731,12 +745,16 @@ body {
   color: var(--color-primary);
 }
 
+.search-card-price {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(74, 214, 255, 0.85);
+}
+
 .search-card-add {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   border: 1px solid rgba(74, 214, 255, 0.32);
   background: rgba(7, 11, 20, 0.82);
@@ -744,8 +762,9 @@ body {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
@@ -754,13 +773,9 @@ body {
   background: rgba(74, 214, 255, 0.2);
 }
 
-/* New: Add-to-Side button in search cards */
 .search-card-add-side {
-  position: absolute;
-  right: 60px; /* sit next to the main add button */
-  bottom: 14px;
-  height: 36px;
-  padding: 0 10px;
+  height: 44px;
+  padding: 0 12px;
   border-radius: 12px;
   border: 1px solid rgba(52, 234, 185, 0.45); /* success tone */
   background: rgba(20, 40, 36, 0.82);
@@ -949,6 +964,66 @@ body {
   border-radius: 12px;
   background: rgba(74, 214, 255, 0.14);
   border: 1px solid rgba(74, 214, 255, 0.28);
+}
+
+.preview-price {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(20, 40, 36, 0.35);
+  border: 1px solid rgba(52, 234, 185, 0.28);
+}
+
+.preview-price-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.preview-price-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(148, 236, 208, 0.82);
+}
+
+.preview-price-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.preview-price-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+}
+
+.preview-price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: rgba(226, 249, 239, 0.78);
+}
+
+.preview-price-item-label {
+  text-transform: uppercase;
+  color: rgba(148, 236, 208, 0.72);
+}
+
+.preview-price-item-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-price-item.is-best .preview-price-item-value {
+  color: var(--color-success);
 }
 
 .preview-stat {
@@ -1481,25 +1556,6 @@ body {
   }
 }
 
-.search-card-add {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  border: 1px solid rgba(74, 214, 255, 0.32);
-  background: rgba(7, 11, 20, 0.82);
-  color: var(--color-text);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.search-card-add:hover {
-  border-color: rgba(74, 214, 255, 0.6);
-  background: rgba(74, 214, 255, 0.2);
-}
-
 /*
 ============================================================
 NUEVO DISEÑO v2: AVATAR DE CARTA CON FONDO INMERSIVO
@@ -1837,3 +1893,15 @@ NUEVO DISEÑO v2: AVATAR DE CARTA CON FONDO INMERSIVO
     max-height: none;
   }
 }
+
+.value-pill .pill-value {
+  color: var(--color-success);
+}
+
+
+.panel-metrics {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
