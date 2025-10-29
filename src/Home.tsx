@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './style.css';
 import { DeckManager } from './services/DeckManager';
 import { GenesysService } from './services/GenesysService';
@@ -8,11 +8,241 @@ import { DeckDisplayUI } from './components/DeckDisplayUI';
 import { CardHoverPreview } from './components/CardPreviewOverlay';
 import type { Card, DeckState, DeckTypeValue } from './types/Card';
 
+type FilterOption = { label: string; value: string };
+
+interface SpellTrapFilterOption extends FilterOption {
+  frame: 'Spell Card' | 'Trap Card';
+}
+
+const cardFrameOptions: FilterOption[] = [
+  { label: 'Normal', value: 'Normal Monster' },
+  { label: 'Effect', value: 'Effect Monster' },
+  { label: 'Fusion', value: 'Fusion Monster' },
+  { label: 'Ritual', value: 'Ritual Monster' },
+  { label: 'Synchro', value: 'Synchro Monster' },
+  { label: 'Xyz', value: 'XYZ Monster' },
+  { label: 'Spell', value: 'Spell Card' },
+  { label: 'Trap', value: 'Trap Card' },
+];
+
+const attributeOptions: FilterOption[] = [
+  { label: 'LIGHT', value: 'LIGHT' },
+  { label: 'DARK', value: 'DARK' },
+  { label: 'WATER', value: 'WATER' },
+  { label: 'FIRE', value: 'FIRE' },
+  { label: 'EARTH', value: 'EARTH' },
+  { label: 'WIND', value: 'WIND' },
+  { label: 'DIVINE', value: 'DIVINE' },
+];
+
+const monsterTypeOptions: FilterOption[] = [
+  { label: 'Spellcaster', value: 'Spellcaster' },
+  { label: 'Dragon', value: 'Dragon' },
+  { label: 'Zombie', value: 'Zombie' },
+  { label: 'Warrior', value: 'Warrior' },
+  { label: 'Beast-Warrior', value: 'Beast-Warrior' },
+  { label: 'Beast', value: 'Beast' },
+  { label: 'Winged Beast', value: 'Winged Beast' },
+  { label: 'Machine', value: 'Machine' },
+  { label: 'Fiend', value: 'Fiend' },
+  { label: 'Fairy', value: 'Fairy' },
+  { label: 'Insect', value: 'Insect' },
+  { label: 'Dinosaur', value: 'Dinosaur' },
+  { label: 'Reptile', value: 'Reptile' },
+  { label: 'Fish', value: 'Fish' },
+  { label: 'Sea Serpent', value: 'Sea Serpent' },
+  { label: 'Aqua', value: 'Aqua' },
+  { label: 'Pyro', value: 'Pyro' },
+  { label: 'Thunder', value: 'Thunder' },
+  { label: 'Rock', value: 'Rock' },
+  { label: 'Plant', value: 'Plant' },
+  { label: 'Psychic', value: 'Psychic' },
+  { label: 'Wyrm', value: 'Wyrm' },
+  { label: 'Cyberse', value: 'Cyberse' },
+  { label: 'Divine-Beast', value: 'Divine-Beast' },
+  { label: 'Illusion', value: 'Illusion' },
+];
+
+const spellTrapTypeOptions: SpellTrapFilterOption[] = [
+  { label: 'Normal Spell', value: 'Normal', frame: 'Spell Card' },
+  { label: 'Field Spell', value: 'Field', frame: 'Spell Card' },
+  { label: 'Equip Spell', value: 'Equip', frame: 'Spell Card' },
+  { label: 'Continuous Spell', value: 'Continuous', frame: 'Spell Card' },
+  { label: 'Quick-Play Spell', value: 'Quick-Play', frame: 'Spell Card' },
+  { label: 'Ritual Spell', value: 'Ritual', frame: 'Spell Card' },
+  { label: 'Normal Trap', value: 'Normal', frame: 'Trap Card' },
+  { label: 'Continuous Trap', value: 'Continuous', frame: 'Trap Card' },
+  { label: 'Counter Trap', value: 'Counter', frame: 'Trap Card' },
+];
+
+const levelRankOptions = Array.from({ length: 14 }, (_, index) => index);
+
+const buildSpellTrapKey = (option: SpellTrapFilterOption): string =>
+  `${option.frame}|${option.value}`;
+
+const getSpellTrapOptionByKey = (key: string): SpellTrapFilterOption | undefined => {
+  if (!key) {
+    return undefined;
+  }
+
+  const [frame, value] = key.split('|');
+  return spellTrapTypeOptions.find(
+    (option) => option.frame === frame && option.value === value
+  );
+};
+
 const Home: React.FC = () => {
   const deckManagerRef = useRef<DeckManager>(DeckManager.getInstance());
   const cardSearchUIRef = useRef<CardSearchUI | null>(null);
   const deckDisplayUIRef = useRef<DeckDisplayUI | null>(null);
   const deckNameInputRef = useRef<HTMLInputElement | null>(null);
+  const [filtersVisible, setFiltersVisible] = useState<boolean>(false);
+  const [selectedFrame, setSelectedFrame] = useState<string>('');
+  const [selectedAttribute, setSelectedAttribute] = useState<string>('');
+  const [selectedMonsterRace, setSelectedMonsterRace] = useState<string>('');
+  const [selectedSpellTrapKey, setSelectedSpellTrapKey] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<number | ''>('');
+  const [atkValue, setAtkValue] = useState<string>('');
+  const [defValue, setDefValue] = useState<string>('');
+  const [searchTermActive, setSearchTermActive] = useState<boolean>(false);
+
+  const hasActiveFilters =
+    Boolean(selectedFrame) ||
+    Boolean(selectedAttribute) ||
+    Boolean(selectedMonsterRace) ||
+    Boolean(selectedSpellTrapKey) ||
+    selectedLevel !== '' ||
+    Boolean(atkValue) ||
+    Boolean(defValue) ||
+    searchTermActive;
+
+  const updateSelectValue = (selectId: string, value: string) => {
+    const selectElement = document.getElementById(selectId) as HTMLSelectElement | null;
+    if (!selectElement) {
+      return;
+    }
+    selectElement.value = value;
+    const changeEvent = new Event('change', { bubbles: true });
+    selectElement.dispatchEvent(changeEvent);
+  };
+
+  const handleFrameChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedFrame(value);
+    updateSelectValue('filter-type', value);
+
+    const currentSpellTrapOption = getSpellTrapOptionByKey(selectedSpellTrapKey);
+
+    if (value === 'Spell Card' || value === 'Trap Card') {
+      if (selectedMonsterRace) {
+        setSelectedMonsterRace('');
+      }
+
+      if (currentSpellTrapOption && currentSpellTrapOption.frame === value) {
+        updateSelectValue('filter-race', currentSpellTrapOption.value);
+      } else {
+        if (currentSpellTrapOption && currentSpellTrapOption.frame !== value) {
+          setSelectedSpellTrapKey('');
+        }
+        updateSelectValue('filter-race', '');
+      }
+    } else {
+      if (currentSpellTrapOption) {
+        setSelectedSpellTrapKey('');
+        if (selectedMonsterRace) {
+          updateSelectValue('filter-race', selectedMonsterRace);
+        } else {
+          updateSelectValue('filter-race', '');
+        }
+      }
+    }
+  };
+
+  const handleAttributeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSelectedAttribute(value);
+    updateSelectValue('filter-attribute', value);
+  };
+
+  const handleMonsterTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    const hasValue = Boolean(value);
+
+    setSelectedMonsterRace(hasValue ? value : '');
+    if (hasValue) {
+      setSelectedSpellTrapKey('');
+      updateSelectValue('filter-race', value);
+    } else {
+      updateSelectValue('filter-race', '');
+    }
+  };
+
+  const handleSpellTrapChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const key = event.target.value;
+
+    if (!key) {
+      setSelectedSpellTrapKey('');
+      updateSelectValue('filter-race', '');
+      return;
+    }
+
+    const option = getSpellTrapOptionByKey(key);
+    if (!option) {
+      setSelectedSpellTrapKey('');
+      updateSelectValue('filter-race', '');
+      return;
+    }
+
+    setSelectedSpellTrapKey(key);
+    setSelectedMonsterRace('');
+    updateSelectValue('filter-race', option.value);
+
+    if (selectedFrame !== option.frame) {
+      setSelectedFrame(option.frame);
+      updateSelectValue('filter-type', option.frame);
+    }
+  };
+
+  const handleLevelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    if (!value) {
+      setSelectedLevel('');
+      updateSelectValue('filter-level', '');
+      return;
+    }
+
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) {
+      setSelectedLevel('');
+      updateSelectValue('filter-level', '');
+      return;
+    }
+
+    setSelectedLevel(parsed);
+    updateSelectValue('filter-level', value);
+  };
+
+  const handleClearFiltersState = () => {
+    setSelectedFrame('');
+    setSelectedAttribute('');
+    setSelectedMonsterRace('');
+    setSelectedSpellTrapKey('');
+    setSelectedLevel('');
+    setAtkValue('');
+    setDefValue('');
+    setSearchTermActive(false);
+
+    updateSelectValue('filter-type', '');
+    updateSelectValue('filter-attribute', '');
+    updateSelectValue('filter-level', '');
+    updateSelectValue('filter-race', '');
+
+    const searchInput = document.getElementById('card-search') as HTMLInputElement | null;
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
 
   const showMessage = (message: string, type: 'success' | 'error' | 'info') => {
     const messageElement = document.createElement('div');
@@ -570,9 +800,12 @@ const Home: React.FC = () => {
       'filter-level',
       'search-results',
       handleCardSelect,
-      'filters-toggle-btn',
-      'search-filters',
-      'filters-clear-btn'
+      undefined,
+      undefined,
+      'filters-clear-btn',
+      'filter-race',
+      'filter-atk',
+      'filter-def'
     );
 
     // Initialize DeckDisplayUI
@@ -637,11 +870,11 @@ const Home: React.FC = () => {
     return () => {
       // Add cleanup code here if needed
     };
-  }, []); // Empty dependency array means this effect runs once on mount
-
-  useEffect(() => {
-    // Set up button event listeners
-    const newDeckBtn = document.getElementById('new-deck');
+    }, []); // Empty dependency array means this effect runs once on mount
+  
+    useEffect(() => {
+      // Set up button event listeners
+      const newDeckBtn = document.getElementById('new-deck');
     const importDeckBtn = document.getElementById('import-deck');
     const exportDeckBtn = document.getElementById('export-deck');
     const downloadPdfBtn = document.getElementById('download-pdf');
@@ -651,13 +884,34 @@ const Home: React.FC = () => {
     exportDeckBtn?.addEventListener('click', handleExportDeck);
     downloadPdfBtn?.addEventListener('click', handleDownloadPdf);
 
-    return () => {
-      newDeckBtn?.removeEventListener('click', handleNewDeck);
-      importDeckBtn?.removeEventListener('click', handleImportDeck);
-      exportDeckBtn?.removeEventListener('click', handleExportDeck);
-      downloadPdfBtn?.removeEventListener('click', handleDownloadPdf);
-    };
-  }, []); // Empty dependency array means this effect runs once on mount
+      return () => {
+        newDeckBtn?.removeEventListener('click', handleNewDeck);
+        importDeckBtn?.removeEventListener('click', handleImportDeck);
+        exportDeckBtn?.removeEventListener('click', handleExportDeck);
+        downloadPdfBtn?.removeEventListener('click', handleDownloadPdf);
+      };
+    }, []); // Empty dependency array means this effect runs once on mount
+
+    useEffect(() => {
+      const searchInput = document.getElementById('card-search') as HTMLInputElement | null;
+
+      const updateSearchIndicator = () => {
+        if (!searchInput) {
+          setSearchTermActive(false);
+          return;
+        }
+        setSearchTermActive(Boolean(searchInput.value.trim()));
+      };
+
+      if (searchInput) {
+        updateSearchIndicator();
+        searchInput.addEventListener('input', updateSearchIndicator);
+      }
+
+      return () => {
+        searchInput?.removeEventListener('input', updateSearchIndicator);
+      };
+    }, []);
 
   return (
     <div className="app-shell">
@@ -757,16 +1011,181 @@ const Home: React.FC = () => {
                 className="search-control-btn search-control-btn--icon"
                 type="button"
                 aria-controls="search-filters"
-                aria-expanded="false"
+                aria-expanded={filtersVisible ? 'true' : 'false'}
+                data-has-filters={hasActiveFilters ? 'true' : 'false'}
+                onClick={() => setFiltersVisible((prev) => !prev)}
               >
-                <span className="material-symbols-outlined" aria-hidden="true">tune</span>
-                <span className="sr-only">Show filters</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  {filtersVisible ? 'close' : 'tune'}
+                </span>
+                <span className="sr-only">{filtersVisible ? 'Hide filters' : 'Show filters'}</span>
               </button>
             </div>
-            <div id="search-filters" className="search-filters" hidden>
-              <label>
-                Type
-                <select id="filter-type">
+            <div
+              id="search-filters"
+              className={`search-filters${filtersVisible ? ' is-visible' : ''}`}
+            >
+              <section className="filter-section">
+                <header className="filter-section-header">
+                  <span className="filter-section-title">Card Frame</span>
+                  <span className="filter-section-logic">OR</span>
+                </header>
+                <div className="filter-field">
+                  <label className="filter-field-label" htmlFor="card-frame-select">Card frame</label>
+                  <select
+                    id="card-frame-select"
+                    className="filter-select"
+                    value={selectedFrame}
+                    onChange={handleFrameChange}
+                  >
+                    <option value="">Any</option>
+                    {cardFrameOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </section>
+
+              <section className="filter-section">
+                <header className="filter-section-header">
+                  <span className="filter-section-title">Attribute</span>
+                </header>
+                <div className="filter-field">
+                  <label className="filter-field-label" htmlFor="attribute-select">Attribute</label>
+                  <select
+                    id="attribute-select"
+                    className="filter-select"
+                    value={selectedAttribute}
+                    onChange={handleAttributeChange}
+                  >
+                    <option value="">Any</option>
+                    {attributeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </section>
+
+              <section className="filter-section">
+                <header className="filter-section-header">
+                  <span className="filter-section-title">Type</span>
+                  <span className="filter-section-subtitle">Monsters</span>
+                </header>
+                <div className="filter-field">
+                  <label className="filter-field-label" htmlFor="monster-type-select">Monster type</label>
+                  <select
+                    id="monster-type-select"
+                    className="filter-select"
+                    value={selectedMonsterRace}
+                    onChange={handleMonsterTypeChange}
+                  >
+                    <option value="">Any</option>
+                    {monsterTypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </section>
+
+              <section className="filter-section">
+                <header className="filter-section-header">
+                  <span className="filter-section-title">Types of Spell and Traps</span>
+                </header>
+                <div className="filter-field">
+                  <label className="filter-field-label" htmlFor="spell-trap-type-select">Spell/Trap subtype</label>
+                  <select
+                    id="spell-trap-type-select"
+                    className="filter-select"
+                    value={selectedSpellTrapKey}
+                    onChange={handleSpellTrapChange}
+                  >
+                    <option value="">Any</option>
+                    {spellTrapTypeOptions.map((option) => {
+                      const key = buildSpellTrapKey(option);
+                      return (
+                        <option key={key} value={key}>
+                          {option.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </section>
+
+              <section className="filter-section filter-section--stats">
+                <header className="filter-section-header">
+                  <span className="filter-section-title">Combat Stats</span>
+                </header>
+                <div className="filter-stat-inputs">
+                  <label htmlFor="filter-atk" className="filter-stat-field">
+                    <span>ATK</span>
+                    <input
+                      id="filter-atk"
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      placeholder="Any"
+                      value={atkValue}
+                      onChange={(event) => setAtkValue(event.target.value)}
+                    />
+                  </label>
+                  <label htmlFor="filter-def" className="filter-stat-field">
+                    <span>DEF</span>
+                    <input
+                      id="filter-def"
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      placeholder="Any"
+                      value={defValue}
+                      onChange={(event) => setDefValue(event.target.value)}
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section className="filter-section">
+                <header className="filter-section-header">
+                  <span className="filter-section-title">Level / Rank</span>
+                </header>
+                <div className="filter-field">
+                  <label className="filter-field-label" htmlFor="level-rank-select">Level or rank</label>
+                  <select
+                    id="level-rank-select"
+                    className="filter-select"
+                    value={selectedLevel === '' ? '' : selectedLevel.toString()}
+                    onChange={handleLevelChange}
+                  >
+                    <option value="">Any</option>
+                    {levelRankOptions.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </section>
+
+              <div className="search-filters-footer">
+                <button
+                  id="filters-clear-btn"
+                  className="search-control-btn search-control-btn--ghost"
+                  type="button"
+                  onClick={handleClearFiltersState}
+                >
+                  Clear filters
+                </button>
+              </div>
+
+              <div className="filter-hidden-inputs" aria-hidden="true">
+                <label className="sr-only" htmlFor="filter-type">Card Frame</label>
+                <select id="filter-type" hidden defaultValue="">
                   <option value="">Any</option>
                   <option value="Effect Monster">Effect Monster</option>
                   <option value="Normal Monster">Normal Monster</option>
@@ -774,44 +1193,41 @@ const Home: React.FC = () => {
                   <option value="Synchro Monster">Synchro Monster</option>
                   <option value="XYZ Monster">XYZ Monster</option>
                   <option value="Ritual Monster">Ritual Monster</option>
+                  <option value="Link Monster">Link Monster</option>
+                  <option value="Spell Card">Spell Card</option>
+                  <option value="Trap Card">Trap Card</option>
                 </select>
-              </label>
-              <label>
-                Attribute
-                <select id="filter-attribute">
+
+                <label className="sr-only" htmlFor="filter-attribute">Attribute</label>
+                <select id="filter-attribute" hidden defaultValue="">
                   <option value="">Any</option>
-                  <option value="LIGHT">LIGHT</option>
-                  <option value="DARK">DARK</option>
-                  <option value="EARTH">EARTH</option>
-                  <option value="WATER">WATER</option>
-                  <option value="FIRE">FIRE</option>
-                  <option value="WIND">WIND</option>
-                  <option value="DIVINE">DIVINE</option>
+                  {attributeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.value}</option>
+                  ))}
                 </select>
-              </label>
-              <label>
-                Level / Rank
-                <select id="filter-level">
+
+                <label className="sr-only" htmlFor="filter-level">Level or Rank</label>
+                <select id="filter-level" hidden defaultValue="">
                   <option value="">Any</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
+                  {levelRankOptions.map((level) => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
                 </select>
-              </label>
-              <div className="search-filters-footer">
-                <button
-                  id="filters-clear-btn"
-                  className="search-control-btn search-control-btn--ghost"
-                  type="button"
-                >
-                  Clear filters
-                </button>
+
+                <label className="sr-only" htmlFor="filter-race">Type</label>
+                <select id="filter-race" hidden defaultValue="">
+                  <option value="">Any</option>
+                  {monsterTypeOptions.map((option) => (
+                    <option key={`monster-${option.value}`} value={option.value}>{option.value}</option>
+                  ))}
+                  <option value="Normal">Normal</option>
+                  <option value="Field">Field</option>
+                  <option value="Equip">Equip</option>
+                  <option value="Continuous">Continuous</option>
+                  <option value="Quick-Play">Quick-Play</option>
+                  <option value="Ritual">Ritual</option>
+                  <option value="Counter">Counter</option>
+                </select>
               </div>
             </div>
           </div>

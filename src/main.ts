@@ -25,7 +25,10 @@ class YugiohDeckBuilderApp {
       (card: Card) => this.handleCardSelect(card),
       'filters-toggle-btn',
       'search-filters',
-      'filters-clear-btn'
+      'filters-clear-btn',
+      'filter-race',
+      'filter-atk',
+      'filter-def'
     );
 
     this.deckDisplayUI = new DeckDisplayUI(

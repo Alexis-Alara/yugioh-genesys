@@ -7,6 +7,8 @@ export class CardSearchUI {
   private attributeSelect: HTMLSelectElement;
   private levelSelect: HTMLSelectElement;
   private raceSelect: HTMLSelectElement | null = null;
+  private atkInput: HTMLInputElement | null = null;
+  private defInput: HTMLInputElement | null = null;
   private resultsContainer: HTMLElement;
   private onCardSelect: (card: Card) => void;
   private debouncedSearch: () => void;
@@ -29,7 +31,9 @@ export class CardSearchUI {
     filtersToggleBtnId?: string,
     filtersContainerId?: string,
     clearFiltersBtnId?: string,
-    raceSelectId?: string
+    raceSelectId?: string,
+    atkInputId?: string,
+    defInputId?: string
   ) {
     this.searchInput = document.getElementById(searchInputId) as HTMLInputElement;
     this.typeSelect = document.getElementById(typeSelectId) as HTMLSelectElement;
@@ -41,6 +45,14 @@ export class CardSearchUI {
     // Initialize race filter (optional)
     if (raceSelectId) {
       this.raceSelect = document.getElementById(raceSelectId) as HTMLSelectElement;
+    }
+
+    if (atkInputId) {
+      this.atkInput = document.getElementById(atkInputId) as HTMLInputElement;
+    }
+
+    if (defInputId) {
+      this.defInput = document.getElementById(defInputId) as HTMLInputElement;
     }
 
     // Initialize filter elements (optional)
@@ -73,6 +85,14 @@ export class CardSearchUI {
       this.raceSelect.addEventListener('change', this.debouncedSearch);
     }
 
+    if (this.atkInput) {
+      this.atkInput.addEventListener('input', this.debouncedSearch);
+    }
+
+    if (this.defInput) {
+      this.defInput.addEventListener('input', this.debouncedSearch);
+    }
+
     // Event listeners for filters
     if (this.filtersToggleBtn) {
       this.filtersToggleBtn.addEventListener('click', this.handleToggleFiltersClick);
@@ -83,10 +103,7 @@ export class CardSearchUI {
   }
 
   private initializeFiltersUI(): void {
-    if (this.filtersContainer) {
-      this.filtersContainer.classList.remove('is-visible');
-      this.filtersContainer.setAttribute('hidden', '');
-    }
+    this.filtersContainer?.classList.remove('is-visible');
 
     if (this.filtersToggleBtn) {
       this.updateFiltersToggleAppearance(false);
@@ -128,6 +145,8 @@ export class CardSearchUI {
     const attribute = this.attributeSelect.value.trim();
     const levelValue = this.levelSelect.value.trim();
     const race = this.raceSelect?.value.trim();
+    const atkValue = this.atkInput?.value.trim();
+    const defValue = this.defInput?.value.trim();
 
     if (name) {
       filters.name = name;
@@ -148,12 +167,33 @@ export class CardSearchUI {
       filters.race = race;
     }
 
+    if (atkValue !== undefined && atkValue !== '') {
+      const atkNumber = Number(atkValue);
+      if (!Number.isNaN(atkNumber)) {
+        filters.atk = atkNumber;
+      }
+    }
+
+    if (defValue !== undefined && defValue !== '') {
+      const defNumber = Number(defValue);
+      if (!Number.isNaN(defNumber)) {
+        filters.def = defNumber;
+      }
+    }
+
     return filters;
   }
 
   private async handleSearch(): Promise<void> {
     const filters = this.buildFilters();
-    const hasFilters = Boolean(filters.name || filters.type || filters.attribute || filters.level || filters.race);
+    const hasFilters =
+      Boolean(filters.name) ||
+      Boolean(filters.type) ||
+      Boolean(filters.attribute) ||
+      filters.level !== undefined ||
+      Boolean(filters.race) ||
+      filters.atk !== undefined ||
+      filters.def !== undefined;
 
     this.updateFiltersIndicator(hasFilters);
 
@@ -358,8 +398,6 @@ export class CardSearchUI {
     }
 
     const isVisible = this.filtersContainer.classList.toggle('is-visible');
-    this.filtersContainer.toggleAttribute('hidden', !isVisible);
-
     this.updateFiltersToggleAppearance(isVisible);
   }
 
@@ -380,6 +418,12 @@ export class CardSearchUI {
     if (this.raceSelect) {
       this.raceSelect.value = '';
     }
+    if (this.atkInput) {
+      this.atkInput.value = '';
+    }
+    if (this.defInput) {
+      this.defInput.value = '';
+    }
 
     this.searchInput.focus();
 
@@ -392,7 +436,9 @@ export class CardSearchUI {
     filtersToggleBtnId: string,
     filtersContainerId: string,
     clearFiltersBtnId: string,
-    raceSelectId?: string
+    raceSelectId?: string,
+    atkInputId?: string,
+    defInputId?: string
   ): void {
     if (this.filtersToggleBtn) {
       this.filtersToggleBtn.removeEventListener('click', this.handleToggleFiltersClick);
@@ -402,6 +448,12 @@ export class CardSearchUI {
     }
     if (this.raceSelect) {
       this.raceSelect.removeEventListener('change', this.debouncedSearch);
+    }
+    if (this.atkInput) {
+      this.atkInput.removeEventListener('input', this.debouncedSearch);
+    }
+    if (this.defInput) {
+      this.defInput.removeEventListener('input', this.debouncedSearch);
     }
 
     this.filtersToggleBtn = document.getElementById(filtersToggleBtnId) as HTMLButtonElement;
@@ -417,6 +469,20 @@ export class CardSearchUI {
       }
     } else {
       this.raceSelect = null;
+    }
+
+    if (atkInputId) {
+      this.atkInput = document.getElementById(atkInputId) as HTMLInputElement;
+      this.atkInput?.addEventListener('input', this.debouncedSearch);
+    } else {
+      this.atkInput = null;
+    }
+
+    if (defInputId) {
+      this.defInput = document.getElementById(defInputId) as HTMLInputElement;
+      this.defInput?.addEventListener('input', this.debouncedSearch);
+    } else {
+      this.defInput = null;
     }
 
     if (this.filtersToggleBtn) {
