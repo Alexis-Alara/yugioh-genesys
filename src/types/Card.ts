@@ -23,6 +23,18 @@ export interface CardSet {
   set_price: string;
 }
 
+export interface MiscInfo {
+  genesys_points?: number;
+  beta_name?: string;
+  question_atk?: number;
+  question_def?: number;
+  downvotes?: number;
+  upvotes?: number;
+  views?: number;
+  formats?: string[];
+  [key: string]: any;
+}
+
 export interface Card {
   id: number;
   name: string;
@@ -41,6 +53,7 @@ export interface Card {
   card_sets?: CardSet[];
   card_images: CardImage[];
   card_prices?: CardPrice[];
+  misc_info?: MiscInfo[];
 }
 
 // Response from the API

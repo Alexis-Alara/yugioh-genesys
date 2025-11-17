@@ -101,6 +101,7 @@ export class DeckDisplayUI {
     const fullImageUrl = card.card_images?.[0]?.id || 0;
     const quantity = deckCard.quantity;
     const basePoints = GenesysService.getCardPoints(card.name) || 0;
+    console.log('Card Points for', card.name, ':', basePoints);
     const totalPoints = basePoints * quantity;
     const formattedPoints = totalPoints.toLocaleString('es-MX');
    

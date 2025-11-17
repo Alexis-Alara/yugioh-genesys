@@ -598,13 +598,14 @@ const Home: React.FC = () => {
       const totalW = page.w - margin * 2;
       const threeColW = (totalW - colGap * 2) / 3;
 
-      type Row = { name: string; qty: number };
-      const toRows = (arr: {card:any; quantity:number}[]): Row[] => arr.map((d) => ({ name: d.card.name, qty: d.quantity }));
+      type Row = { name: string; qty: number; card: any };
+      const toRows = (arr: {card:any; quantity:number}[]): Row[] => arr.map((d) => ({ name: d.card.name, qty: d.quantity, card: d.card }));
       const monRows = toRows(mainMonsters);
       const spellRows = toRows(mainSpells);
       const trapRows = toRows(mainTraps);
 
-      const getTotalPoints = (cards: {card:any; quantity:number}[]) => cards.reduce((sum, d) => sum + GenesysService.getCardPoints(d.card.name) * d.quantity, 0);
+      const getTotalPoints = (cards: {card:any; quantity:number}[]) => 
+        cards.reduce((sum, d) => sum + GenesysService.getCardPoints(d.card) * d.quantity, 0);
       const totalMonPoints = getTotalPoints(mainMonsters);
       const totalSpellPoints = getTotalPoints(mainSpells);
       const totalTrapPoints = getTotalPoints(mainTraps);
@@ -642,7 +643,7 @@ const Home: React.FC = () => {
           drawCell(x + threeColW - ptsColW, ry, ptsColW, rowH);
           const row = rows[i];
           if (row) {
-            const cardPoints = GenesysService.getCardPoints(row.name);
+            const cardPoints = GenesysService.getCardPoints(row.card);
             const totalRowPoints = cardPoints * row.qty;
             doc.setFont('helvetica','normal');
             doc.setFontSize(7);
@@ -711,7 +712,7 @@ const Home: React.FC = () => {
           drawCell(x + threeColW - ptsColW, ry, ptsColW, rowH);
           const row = rows[i];
           if (row) {
-            const cardPoints = GenesysService.getCardPoints(row.name);
+            const cardPoints = GenesysService.getCardPoints(row.card);
             const totalRowPoints = cardPoints * row.qty;
             doc.setFont('helvetica','normal');
             doc.setFontSize(7);

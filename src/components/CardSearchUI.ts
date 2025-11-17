@@ -270,7 +270,7 @@ export class CardSearchUI {
       return;
     }
     const filteredCards = cards.filter(card => 
-        !card.type.includes('Link') && !card.type.includes('Pendulum') && !card.type.includes('Token')
+        !card.type.includes('Link') && !card.type.includes('Pendulum') && !card.type.includes('Token') && !card.type.includes('Skill Card')
       );
 
     // Limitar resultados en móviles
@@ -310,11 +310,12 @@ export class CardSearchUI {
     const level = card.level ? `LV.${card.level}` : card.linkval ? `LINK-${card.linkval}` : '';
     const attribute = card.attribute ? card.attribute : '';
 
-    const points = GenesysService.getCardPoints(card.name);
+    const points = GenesysService.getCardPoints(card);
     const priceInfo = getCardPriceInfo(card);
     const genesysBadge = points > 0
       ? `<span class="search-card-points" title="Genesys score">${points} pts</span>`
       : '';
+
     const priceBadge = priceInfo
       ? `<span class="search-card-price">${this.escapeText(formatCurrency(priceInfo.best.value))} · ${this.escapeText(priceInfo.best.label)}</span>`
       : '';
@@ -416,7 +417,7 @@ export class CardSearchUI {
       const cards = await YugiohApiService.getRandomCards(this.randomCardBatchSize);
       
       const filteredCards = cards.filter(card => 
-        !card.type.includes('Link') && !card.type.includes('Pendulum') && !card.type.includes('Token')
+        !card.type.includes('Link') && !card.type.includes('Pendulum') && !card.type.includes('Token') && !card.type.includes('Skill Card')
       );
       this.displayResults(filteredCards);
     } catch (error) {

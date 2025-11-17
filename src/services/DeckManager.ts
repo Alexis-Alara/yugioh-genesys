@@ -20,6 +20,11 @@ export class DeckManager {
       sideDeck: [],
       name: 'My Deck'
     };
+
+    // Escuchar actualizaciones de puntos Genesys
+    window.addEventListener('genesysPointsUpdated', () => {
+      this.notifyListeners();
+    });
   }
 
   static getInstance(): DeckManager {
@@ -147,7 +152,6 @@ export class DeckManager {
     } else {
       deckArray.push({ card, quantity: 1 });
     }
-
     this.notifyListeners();
     return true;
   }
@@ -218,7 +222,7 @@ export class DeckManager {
     ];
 
     allDecks.forEach((deckCard) => {
-      const cardPoints = GenesysService.getCardPoints(deckCard.card.name);
+      const cardPoints = GenesysService.getCardPoints(deckCard.card);
       totalPoints += cardPoints * deckCard.quantity;
     });
 
