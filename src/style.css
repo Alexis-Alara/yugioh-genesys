@@ -1905,3 +1905,87 @@ NUEVO DISEÑO v2: AVATAR DE CARTA CON FONDO INMERSIVO
   gap: 12px;
 }
 
+/* Update Banner */
+.update-banner {
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  color: white;
+  padding: 12px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
+}
+
+.update-banner-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.update-banner-icon {
+  flex-shrink: 0;
+}
+
+.update-banner-icon .material-symbols-outlined {
+  font-size: 20px;
+  animation: pulse-icon 2s infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.update-banner-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.update-banner-text strong {
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.update-banner-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.update-banner-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.update-banner-close .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .update-banner-content {
+    padding: 0 16px;
+    gap: 8px;
+  }
+  
+  .update-banner-text {
+    font-size: 13px;
+  }
+  
+  .update-banner-text strong {
+    display: block;
+    margin-bottom: 2px;
+    margin-right: 0;
+  }
+}
+

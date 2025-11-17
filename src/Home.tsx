@@ -107,6 +107,7 @@ const Home: React.FC = () => {
   const [searchTermActive, setSearchTermActive] = useState<boolean>(false);
   const [isMobileLayout, setIsMobileLayout] = useState<boolean>(false);
   const [activeMobileSection, setActiveMobileSection] = useState<'deck' | 'search'>('deck');
+  const [showBanner, setShowBanner] = useState<boolean>(true);
 
   const hasActiveFilters =
     Boolean(selectedFrame) ||
@@ -979,8 +980,35 @@ const Home: React.FC = () => {
       };
     }, []);
 
+  const handleCloseBanner = () => {
+    setShowBanner(false);
+    // Guardar en localStorage para no mostrar el banner nuevamente
+    localStorage.setItem('genesysUpdateBannerDismissed', 'true');
+  };
+
   return (
     <div className="app-shell">
+      {showBanner && (
+        <div className="update-banner">
+          <div className="update-banner-content">
+            <div className="update-banner-icon">
+              <span className="material-symbols-outlined">update</span>
+            </div>
+            <div className="update-banner-text">
+              <strong>¡Actualización importante!</strong> 
+              <span>Ahora usamos los puntos Genesys más actualizados directamente desde la base de datos oficial.</span>
+            </div>
+            <button 
+              className="update-banner-close" 
+              onClick={handleCloseBanner}
+              aria-label="Cerrar banner"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       <header className="topbar">
         <div className="brand-block">
           <div className="brand-logo">YG</div>
